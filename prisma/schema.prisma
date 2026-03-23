@@ -1,0 +1,296 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @map("_id")
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id @map("_id")
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @map("_id")
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @map("_id")
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+enum Status {
+  RUNNING
+  PAUSED
+}
+
+type MarketScope {
+  symbols   String[]
+  agentCycles  Int
+}
+
+type RiskLimits {
+  maxRiskPerTradePct Float
+  maxDailyLossPct    Float
+  maxOpenPositions   Int
+}
+
+type Capital {
+  allocated Float
+  currency  String
+}
+
+enum AgentType {
+  CRYPTO
+  STOCKS
+
+}
+
+enum AgentStrategy {
+  ALGO_TRADING
+  LLM_TRADING
+  HYBRID
+}
+
+type ExchangeCredentials {
+  name String
+  apiKey String
+  secret String
+  sandbox Boolean @default(false)
+  urls URL
+}
+
+type LLmCred{
+  type CredentialType
+  apiKey String
+}
+
+model Agent{
+ id String @id @default(auto()) @map("_id") @db.ObjectId
+ name String
+ userId String
+ status Status @default(RUNNING)
+ credentialId String? @db.ObjectId
+ exchangeId String @db.ObjectId
+ llmModel String?
+ credential LLmCred?
+ temperature Float? @default(0.7)
+ exchange ExchangeCredentials
+ market MarketScope
+ risk RiskLimits
+ capital Capital
+ strategy AgentStrategy @default(LLM_TRADING)
+ type AgentType @default(CRYPTO)
+ lastRun DateTime?
+
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+ @@index([userId])
+}
+
+type URL{
+  public String
+  private String
+}
+
+model Exchange{
+ id String @id @default(auto()) @map("_id") @db.ObjectId
+ userId String
+ name String
+ apiKey String
+ secret String
+ sandbox Boolean @default(false)
+ urls URL
+ lastSyncedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+ @@index([userId])
+}
+
+
+model AgentRuns{
+ id String @id @default(auto()) @map("_id") @db.ObjectId
+ agentId String
+ llmResponse String
+ createdAt DateTime @default(now())
+
+ @@index([agentId])
+
+}
+
+enum Side {
+  BUY
+  SELL
+}
+
+enum OrderType {
+  LIMIT
+  MARKET
+}
+
+model OrderLogs{
+ id String @id @default(auto()) @map("_id") @db.ObjectId
+ agentId String
+ symbol String
+ side Side
+ quantity Float
+ type OrderType
+ createdAt DateTime @default(now())
+
+ @@index([agentId])
+
+}
+
+enum PositionType {
+  LONG
+  SHORT
+}
+
+model Trades{
+ id String @id @default(auto()) @map("_id") @db.ObjectId
+ exchangeId String
+ symbol String
+ side Side
+ quantity Float
+ price Float
+ fee Float
+ executedAt DateTime @default(now())
+
+ @@index([exchangeId])
+}
+
+model Positions{
+ id String @id @default(auto()) @map("_id") @db.ObjectId
+ exchangeId String
+ symbol String
+ quantity Float
+ type PositionType
+ avgPrice Float
+ unrealizedPnl Float
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+ @@index([exchangeId])
+}
+
+enum NotificationType {
+  ERROR
+  WARNING
+  INFO
+}
+
+enum NotificationSource {
+  AGENT
+  SYSTEM
+  EXCHANGE
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+  ACKNOWLEDGED
+}
+
+
+model Notification {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+
+  userId    String
+  agentId   String?
+  exchangeId String?
+
+  type      NotificationType
+  source    NotificationSource
+  status    NotificationStatus @default(UNREAD)
+
+  title     String
+  message   String
+
+  code      String?   // e.g. EXCHANGE_AUTH_FAILED
+  metadata  String?     // raw error payload, stack, ccxt response, etc.
+
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+
+  @@index([userId])
+  @@index([agentId])
+  @@index([exchangeId])
+  @@index([status])
+}
+
+enum CredentialType {
+  OPENROUTER
+  OPENAI
+  ANTHROPIC
+}
+
+model Credentials {
+ id String @id @default(auto()) @map("_id") @db.ObjectId
+ type CredentialType
+ userId String
+ apiKey String
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+ @@index([userId])
+}
