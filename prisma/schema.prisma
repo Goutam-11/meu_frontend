@@ -110,19 +110,6 @@ enum AgentStrategy {
   HYBRID
 }
 
-type ExchangeCredentials {
-  name String
-  apiKey String
-  secret String
-  sandbox Boolean @default(false)
-  urls URL
-}
-
-type LLmCred{
-  type CredentialType
-  apiKey String
-}
-
 model Agent{
  id String @id @default(auto()) @map("_id") @db.ObjectId
  name String
@@ -131,9 +118,7 @@ model Agent{
  credentialId String? @db.ObjectId
  exchangeId String @db.ObjectId
  llmModel String?
- credential LLmCred?
  temperature Float? @default(0.7)
- exchange ExchangeCredentials
  market MarketScope
  risk RiskLimits
  capital Capital

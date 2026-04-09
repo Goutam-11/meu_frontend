@@ -39,6 +39,7 @@ import { useSuspenseExchanges } from "@/features/exchange/hooks/use-exchange";
 import { useCredentialByType } from "@/features/credentials/hooks/use-credentials";
 
 const CYCLE_OPTIONS = [
+  { label: "1 minute", value: "1m" },
   { label: "5 minutes", value: "5m" },
   { label: "15 minutes", value: "15m" },
   { label: "1 hour", value: "1h" },

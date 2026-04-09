@@ -87,7 +87,7 @@ export default function NotificationDetailView({
   };
 
   return (
-    <div className="h-full bg-background p-4 sm:p-6 lg:p-10 space-y-8 w-full max-h-full overflow-auto rounded-b-2xl mx-auto">
+    <div className="h-full bg-background p-4 sm:p-6 lg:p-10 space-y-8 w-full max-h-full overflow-auto mx-auto">
       {/* Header */}
       <motion.header
         initial="hidden"

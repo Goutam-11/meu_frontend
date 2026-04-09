@@ -16,7 +16,7 @@ export const EntityContainer = ({
   className,
 }: EntityContainerProps) => {
   return (
-    <div className={cn("p-4 md:px-8 lg:px-12 md:py-8 bg-background h-full rounded-b-2xl", className)}>
+    <div className={cn("p-4 md:px-8 lg:px-12 md:py-8 bg-background h-full", className)}>
       <div className="mx-auto max-w-6xl w-full flex flex-col gap-y-8 h-full">
         {header}
         <div className="flex flex-col gap-y-6 h-full">

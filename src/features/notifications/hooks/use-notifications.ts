@@ -23,7 +23,7 @@ export const useRemoveNotifications = () => {
   return useMutation(
     trpc.notifications.delete.mutationOptions({
       onSuccess: () => {
-        toast.info("Notifications removed successfully");
+        toast.success("Notifications removed successfully");
         queryClient.invalidateQueries(
           trpc.notifications.getAll.queryOptions()
         );
@@ -41,7 +41,7 @@ export const useMarkAsRead = () => {
   return useMutation(
     trpc.notifications.markAsRead.mutationOptions({
       onSuccess: () => {
-        toast.info("Notification marked as read");
+        toast.success("Notification marked as read");
         queryClient.invalidateQueries(
           trpc.notifications.getAll.queryOptions()
         );

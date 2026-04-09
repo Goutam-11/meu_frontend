@@ -17,13 +17,14 @@ import {
   AlertTriangleIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useSuspenseNotifications } from "../hooks/use-notifications";
+import { useRemoveNotifications, useSuspenseNotifications } from "../hooks/use-notifications";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
 export default function NotificationsPage() {
   const { data: notifications } = useSuspenseNotifications();
+  const removeNotif = useRemoveNotifications();
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -103,7 +104,7 @@ export default function NotificationsPage() {
                 </span>
               }
               className={cn("flex flex-row items-center h-16 ",isRead ? "opacity-60" : "")}
-              onRemove={() => console.log("Dismiss", notif.id)}
+              onRemove={() => removeNotif.mutate({id:notif.id})}
               onClick={() => router.push(`/notifications/${notif.id}`)}
             />
           );
