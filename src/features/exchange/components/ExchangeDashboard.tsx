@@ -52,48 +52,14 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn, computePnlSeries } from "@/lib/utils";
 import { Exchange } from "@/generated/prisma/client";
-import { useSuspenseExchanges } from "../hooks/use-exchange";
-import { useQuery } from "@tanstack/react-query";
-import { makeQueryClient } from "@/trpc/query-client";
+import { useGetExchangeData, useSuspenseExchanges } from "../hooks/use-exchange";
 import type { Balances, Position, Trade } from "ccxt";
 
-// Type definitions
-interface APIError extends Error {
-  code?: string;
-  status?: number;
-  details?: string;
-}
-interface ExchangePosition {
-  symbol?: string;
-  unrealizedPnl?: number;
-  marginMode?: string;
-  [key: string]: unknown;
-}
-
-interface ExchangeTrade {
-  symbol?: string;
-  side?: string;
-  type?: string;
-  price?: number;
-  amount?: number;
-  cost?: number;
-  fee?: { cost: number };
-  takerOrMaker?: string;
-  [key: string]: unknown;
-}
-
-interface ExchangeBalance {
-  [key: string]: {
-    free?: number;
-    used?: number;
-    total?: number;
-  };
-}
 
 interface ExchangeData {
-  positions: Position[];
-  trades: Trade[];
-  balance: Balances;
+  positions?: Position[] | undefined;
+  trades?: Trade[] | undefined;
+  balance?: Balances | undefined;
   warnings?: string[];
 }
 
@@ -108,7 +74,7 @@ const fadeUp: Variants = {
 
 // Error handling component
 interface ErrorAlertProps {
-  error: Error | null;
+  error: any;
   data: ExchangeData | undefined;
   errorDismissed: boolean;
   setErrorDismissed: (dismissed: boolean) => void;
@@ -124,57 +90,12 @@ const ErrorAlert = ({
 }: ErrorAlertProps) => {
   if (!error || errorDismissed) return null;
 
-  const apiError = error as APIError;
-  const errorCode = apiError.code || "UNKNOWN_ERROR";
-  const errorDetails = apiError.details;
-  const statusCode = apiError.status;
+  const trpcError = error as any;
+  
+  const errorTitle = trpcError.data?.code || "UNKNOWN_ERROR";
+  const errorDescription = trpcError.data?.message || "Unknown error occurred no data available.";
 
-  let errorTitle = "Failed to Load Exchange Data";
-  let errorDescription = error.message;
-
-  switch (errorCode) {
-    case "EXCHANGE_NOT_FOUND":
-      errorTitle = "Exchange Not Found";
-      errorDescription =
-        "The selected exchange configuration could not be found. Please check your settings.";
-      break;
-    case "AUTH_ERROR":
-      errorTitle = "Authentication Error";
-      errorDescription =
-        "Failed to authenticate with the exchange. Check your API credentials.";
-      break;
-    case "TIMEOUT":
-      errorTitle = "Request Timeout";
-      errorDescription =
-        "The exchange API took too long to respond. Please try again.";
-      break;
-    case "UNSUPPORTED_EXCHANGE":
-      errorTitle = "Unsupported Exchange";
-      errorDescription = "This exchange type is not currently supported.";
-      break;
-    case "ALL_FETCHES_FAILED":
-      errorTitle = "Cannot Retrieve Data";
-      errorDescription =
-        "Unable to fetch any data from the exchange. Check your connection and API credentials.";
-      break;
-    case "INVALID_ID":
-      errorTitle = "Invalid Exchange ID";
-      errorDescription = "The exchange ID is invalid or missing.";
-      break;
-    default:
-      if (statusCode === 404) {
-        errorTitle = "Exchange Not Found";
-        errorDescription = "The selected exchange could not be found.";
-      } else if (statusCode === 503) {
-        errorTitle = "Service Unavailable";
-        errorDescription =
-          "The exchange service is temporarily unavailable. Please try again later.";
-      } else if (statusCode === 504) {
-        errorTitle = "Gateway Timeout";
-        errorDescription =
-          "The exchange API gateway timed out. Please try again.";
-      }
-  }
+ 
 
   return (
     <div className="mb-6 rounded-lg border border-destructive/50 bg-destructive/10 p-4">
@@ -188,9 +109,6 @@ const ErrorAlert = ({
             <p className="text-sm text-destructive/80 mt-1">
               {errorDescription}
             </p>
-            {errorDetails && (
-              <p className="text-xs text-destructive/60 mt-2">{errorDetails}</p>
-            )}
             {data?.warnings && (
               <div className="mt-2">
                 <p className="text-xs font-medium text-destructive/80">
@@ -259,63 +177,17 @@ export function ExchangeDashboard() {
     exchanges[0],
   );
   const [errorDismissed, setErrorDismissed] = useState(false);
-  const queryClient = makeQueryClient();
 
-  const handleHover = (id: string) => {
-    queryClient.prefetchQuery({
-      queryKey: ["exchange", id],
-      queryFn: () =>
-        fetch(`/api/exchange/${id}`).then((res) => {
-          if (!res.ok) {
-            throw new Error(`HTTP ${res.status}`);
-          }
-          return res.json();
-        }),
-    });
-  };
-
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["exchange", selectedExchange.id],
-    queryFn: async () => {
-      const res = await fetch(`/api/exchange/${selectedExchange.id}`);
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        const errorMessage = errorData.error || "Failed to fetch exchange data";
-        const errorCode = errorData.code || "UNKNOWN_ERROR";
-
-        const err = new Error(errorMessage) as APIError;
-        err.code = errorCode;
-        err.status = res.status;
-        err.details = errorData.details;
-        throw err;
-      }
-
-      const jsonData = await res.json();
-
-      // Log any warnings from the server
-      if (jsonData.warnings && Array.isArray(jsonData.warnings)) {
-        console.warn("Exchange data warnings:", jsonData.warnings);
-      }
-
-      return jsonData;
-    },
-    enabled: !!selectedExchange.id,
-    retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
-    refetchInterval: 5000,
-    staleTime: 0,
-    gcTime: 0,
-  });
-
-  const safeData: ExchangeData = useMemo(
-    () => ({
-      balance: (data?.balance as Balances) ?? {},
-      positions: (data?.positions as Position[]) ?? [],
-      trades: (data?.trades as Trade[]) ?? [],
-    }),
-    [data],
-  );
+  const {
+    data,
+    safeData,
+    warnings,
+    isLoading,
+    error,
+    isTotallyBroken,
+    refetch,
+  } = useGetExchangeData(selectedExchange.id);
+  
 
   const ignoreKeys = ["info", "free", "used", "total"];
 
@@ -329,7 +201,7 @@ export function ExchangeDashboard() {
 
   const totalUnrealizedPnl =
     safeData?.positions?.reduce(
-      (sum: number, p: Position) => sum + (p.info.unrealized_pnl ?? 0),
+      (sum: number, p: Position) => sum + Number(p.info.unrealized_pnl ?? 0),
       0,
     ) ?? 0;
 
@@ -338,12 +210,12 @@ export function ExchangeDashboard() {
   }
 
   return (
-    <div className="h-full w-full rounded-b-2xl bg-background p-4 sm:p-6 lg:p-10 space-y-8 max-w-7xl mx-auto">
+    <div className="h-full w-full bg-background p-4 sm:p-6 lg:p-10 space-y-8 max-w-7xl mx-auto">
       {/* Error Alert */}
       {error && (
         <ErrorAlert
-          error={error as Error}
-          data={data}
+          error={error}
+          data={{...data,warnings}}
           errorDismissed={errorDismissed}
           setErrorDismissed={setErrorDismissed}
           refetch={refetch}
@@ -395,7 +267,7 @@ export function ExchangeDashboard() {
                     <CommandItem
                       key={ex.id}
                       value={ex.name}
-                      onMouseEnter={() => handleHover(ex.id)}
+                      onMouseEnter={() => console.log("ExchangeID: ", ex.id)}
                       onSelect={() => {
                         setSelectedExchange(ex);
                         setOpen(false);
@@ -425,13 +297,13 @@ export function ExchangeDashboard() {
           {
             title: "Total Balance",
             icon: Wallet,
-            value: safeData?.balance.USD.total ?? 0,
+            value: safeData?.balance.USD !== undefined ? safeData?.balance.USD.total : 0,
             suffix: "USD",
           },
           {
             title: "Unrealized PnL",
             icon: totalUnrealizedPnl >= 0 ? TrendingUp : TrendingDown,
-            value: `${totalUnrealizedPnl >= 0 ? "+" : ""}${totalUnrealizedPnl}`,
+            value: `${totalUnrealizedPnl}`,
             suffix: "USDT",
             suffixColor:"text-primary",
             valueColor:
@@ -610,7 +482,7 @@ export function ExchangeDashboard() {
         className="grid grid-cols-1 lg:grid-cols-3 gap-6"
       >
         {/* Balances */}
-        <Card className="lg:col-span-2">
+        {safeData?.balance.USD !== undefined && <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-sm uppercase tracking-widest text-muted-foreground">
               Balances
@@ -650,7 +522,7 @@ export function ExchangeDashboard() {
               </TableBody>
             </Table>
           </CardContent>
-        </Card>
+        </Card>}
       </motion.div>
 
       {/* Positions & Trades Tabs */}
@@ -697,9 +569,9 @@ export function ExchangeDashboard() {
                     <TableBody>
                       {safeData.positions.map((pos: Position) => {
                         const isLong = pos.side === "long";
-                        const pnlPositive = (pos.unrealizedPnl ?? 0) >= 0;
+                        const pnlPositive = Number(pos.info.unrealized_pnl) >= 0;
                         return (
-                          <TableRow key={pos.id}>
+                          <TableRow key={`${pos.symbol}-${pos.side}-${pos.entryPrice}`}>
                             <TableCell className="font-mono font-medium">
                               {pos.symbol}
                             </TableCell>
@@ -739,7 +611,6 @@ export function ExchangeDashboard() {
                                   : "text-red-500",
                               )}
                             >
-                              {pnlPositive ? "+" : ""}
                               {pos.info.unrealized_pnl}
                             </TableCell>
                             <TableCell

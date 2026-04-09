@@ -1,6 +1,7 @@
 import "server-only";
 import prisma from "./db";
-import ccxt from "ccxt";
+import ccxt, { Balances, Position, Trade } from "ccxt";
+import { TRPCError } from "@trpc/server";
 // ccxt exchange map
 
 
@@ -16,7 +17,10 @@ export type ExchangeName = keyof typeof exchangeMap;
 
 export async function getExchangeData(exchangeId: string) {
   if (!exchangeId || typeof exchangeId !== "string") {
-    throw new Error("Invalid exchange ID provided");
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Invalid exchange ID provided",
+    });
   }
 
   const exchangeData = await prisma.exchange.findUnique({
@@ -24,17 +28,26 @@ export async function getExchangeData(exchangeId: string) {
   });
 
   if (!exchangeData) {
-    throw new Error(`Exchange not found with ID: ${exchangeId}`);
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Exchange not found with the provided ID",
+    });
   }
 
   if (!exchangeData.apiKey || !exchangeData.secret) {
-    throw new Error("Exchange API credentials are missing or invalid");
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Exchange API credentials are missing or invalid",
+    });
   }
 
   const exchangeName = exchangeData.name.toUpperCase() as ExchangeName;
 
   if (!exchangeMap[exchangeName]) {
-    throw new Error(`Unsupported exchange type: ${exchangeData.name}`);
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Unsupported exchange type",
+    });
   }
 
   const exchange = new exchangeMap[exchangeName]({
@@ -57,9 +70,9 @@ export async function getExchangeData(exchangeId: string) {
   }
 
   // 🔥 KEY CHANGE: no throwing here
-  let positions: unknown[] = [];
-  let trades: unknown[] = [];
-  let balance: Record<string, unknown> = {};
+  let positions: Position[] = [];
+  let trades: Trade[] = [];
+  let balance: Balances = { info: { free: 0,used:0,total:0}};
 
   let positionsError: string | null = null;
   let tradesError: string | null = null;

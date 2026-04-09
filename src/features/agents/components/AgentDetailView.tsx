@@ -1,5 +1,7 @@
 "use client";
 import { motion, type Variants } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   Bot,
   Activity,
@@ -18,8 +20,15 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { useStatusChangeAgent, useSuspenseAgent, useSuspenseRuns } from "../hooks/use-agent";
-
+import {
+  useStatusChangeAgent,
+  useSuspenseAgent,
+  useSuspenseRuns,
+} from "../hooks/use-agent";
+import { useSuspenseExchange } from "@/features/exchange/hooks/use-exchange";
+import {
+  useCredential,
+} from "@/features/credentials/hooks/use-credentials";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 12 },
@@ -30,19 +39,28 @@ const fadeUp: Variants = {
   }),
 };
 
-
-
 export default function AgentDetailView({ agentId }: { agentId: string }) {
   const { data: agent } = useSuspenseAgent(agentId);
+
+  if (!agent) {
+    throw new Error("Agent not found"); // or return fallback UI
+  }
+
+  const { data: exchange } = useSuspenseExchange(agent.exchangeId);
+
+  const { data: credentials } = useCredential(agent?.credentialId);
   const { data: runs } = useSuspenseRuns(agentId);
   const isRunning = agent?.status === "RUNNING";
   const statusChange = useStatusChangeAgent();
   const handleStatusChange = () => {
-    statusChange.mutate({ id: agentId, status: isRunning ? "PAUSED" : "RUNNING" });
+    statusChange.mutate({
+      id: agentId,
+      status: isRunning ? "PAUSED" : "RUNNING",
+    });
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-10 space-y-8 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-10 space-y-8 max-w-7xl mx-auto ">
       {/* L1: Header & Identity */}
       <motion.header
         initial="hidden"
@@ -60,7 +78,10 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                 {agent?.name}
               </h1>
-              <Badge variant={isRunning ? "default" : "destructive"} className="px-3">
+              <Badge
+                variant={isRunning ? "default" : "destructive"}
+                className="px-3"
+              >
                 <span
                   className={`mr-1.5 inline-block h-2 w-2 rounded-full animate-pulse-dot ${
                     isRunning ? "bg-status-running" : "bg-status-paused"
@@ -75,7 +96,11 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
           </div>
         </div>
 
-        <Button variant="outline" className="shrink-0" onClick={handleStatusChange}>
+        <Button
+          variant="outline"
+          className="shrink-0"
+          onClick={handleStatusChange}
+        >
           {isRunning ? (
             <PauseCircle className="mr-2 h-4 w-4" />
           ) : (
@@ -98,7 +123,8 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
             title: "Max Risk / Trade",
             icon: ShieldCheck,
             value: `${agent?.risk.maxRiskPerTradePct}%`,
-            suffix: (agent?.risk.maxRiskPerTradePct ?? 0) <= 2 ? "Safe" : "Elevated",
+            suffix:
+              (agent?.risk.maxRiskPerTradePct ?? 0) <= 2 ? "Safe" : "Elevated",
             suffixColor:
               (agent?.risk.maxRiskPerTradePct ?? 0) <= 2
                 ? "text-status-running"
@@ -193,64 +219,65 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
               <ShieldCheck className="h-4 w-4 text-muted-foreground" />
               Execution Config
             </h3>
-          
+
             <div className="rounded-xl border bg-card p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-              
               {/* Exchange */}
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
                   Exchange
                 </p>
-          
+
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Name</span>
-                    <span className="font-medium">{agent?.exchange?.name ?? "N/A"}</span>
+                    <span className="font-medium">
+                      {exchange?.name ?? "N/A"}
+                    </span>
                   </div>
-          
+
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Sandbox</span>
                     <span
                       className={`font-medium ${
-                        agent?.exchange?.sandbox
+                        exchange?.sandbox
                           ? "text-status-running"
                           : "text-muted-foreground"
                       }`}
                     >
-                      {agent?.exchange?.sandbox ? "Enabled" : "Disabled"}
+                      {exchange?.sandbox ? "Enabled" : "Disabled"}
                     </span>
                   </div>
-          
+
                   <div className="space-y-1">
                     <span className="text-muted-foreground">Public URL</span>
                     <p className="font-mono text-xs truncate">
-                      {agent?.exchange?.urls?.public ?? "N/A"}
+                      {exchange?.urls?.public ?? "N/A"}
                     </p>
                   </div>
-          
+
                   <div className="space-y-1">
                     <span className="text-muted-foreground">Private URL</span>
                     <p className="font-mono text-xs truncate">
-                      {agent?.exchange?.urls?.private ?? "N/A"}
+                      {exchange?.urls?.private ?? "N/A"}
                     </p>
                   </div>
                 </div>
               </div>
-          
+
               {/* Credential */}
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
                   Credential
                 </p>
-          
+
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Type</span>
                     <span className="font-medium">
-                      {agent?.credential?.type ?? "N/A"}
+                      {credentials?.type ?? "N/A"}
                     </span>
                   </div>
-          
+
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Credential ID</span>
                     <span className="font-mono text-xs truncate max-w-[140px]">
@@ -259,7 +286,6 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
                   </div>
                 </div>
               </div>
-          
             </div>
           </section>
 
@@ -272,8 +298,12 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
             <div className="rounded-xl border bg-card p-6 grid grid-cols-2 md:grid-cols-3 gap-8">
               {[
                 { label: "Model", value: agent?.llmModel ?? "N/A" },
-                { label: "Temperature", value: String(agent?.temperature), mono: true },
-                { label: "Exchange", value: agent?.exchange?.name, mono: true },
+                {
+                  label: "Temperature",
+                  value: String(agent?.temperature),
+                  mono: true,
+                },
+                { label: "Exchange", value: exchange?.name, mono: true },
               ].map((item) => (
                 <div key={item.label} className="space-y-1">
                   <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
@@ -291,8 +321,6 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
             </div>
           </section>
         </motion.div>
-        
-       
 
         {/* Sidebar: Metadata */}
         <motion.div
@@ -311,7 +339,12 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
             <CardContent className="space-y-4">
               {[
                 { label: "Type", value: agent?.type },
-                { label: "Agent ID", value: agent?.id, mono: true, truncate: true },
+                {
+                  label: "Agent ID",
+                  value: agent?.id,
+                  mono: true,
+                  truncate: true,
+                },
                 {
                   label: "Last Run",
                   value: agent?.lastRun
@@ -333,7 +366,9 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
               ].map((item, i, arr) => (
                 <div key={item.label}>
                   <div className="flex justify-between text-sm gap-2">
-                    <span className="text-muted-foreground shrink-0">{item.label}</span>
+                    <span className="text-muted-foreground shrink-0">
+                      {item.label}
+                    </span>
                     <span
                       className={`font-medium text-right text-foreground ${
                         item.mono ? "font-mono" : ""
@@ -353,56 +388,58 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
       </div>
 
       {/* L4: Agent Runs */}
-      <motion.section
-        initial="hidden"
-        animate="visible"
-        custom={7}
-        variants={fadeUp}
-        className="space-y-4 pt-4"
-      >
-        <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-muted-foreground" />
-            Execution History
-          </h3>
-          <Badge variant="outline" className="font-mono">
-            {runs.length} runs
-          </Badge>
-        </div>
-
-        <div className="rounded-xl border bg-card overflow-hidden">
-          <div className="divide-y divide-border">
-            {runs.map((run, i) => (
-              <motion.div
-                key={run.id}
-                initial="hidden"
-                animate="visible"
-                custom={8 + i * 0.5}
-                variants={fadeUp}
-                className="p-4 hover:bg-muted/50 transition-colors group cursor-pointer"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1 flex-1 min-w-0">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
-                      <Clock className="h-3 w-3 shrink-0" />
-                      {new Date(run.createdAt).toLocaleString()}
-                    </div>
-                    <p className="text-sm text-foreground leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all">
-                      {run.llmResponse}
-                    </p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1" />
-                </div>
-              </motion.div>
-            ))}
-            {runs.length === 0 && (
-              <div className="p-12 text-center text-muted-foreground italic text-sm">
-                No execution history found for this agent.
-              </div>
-            )}
+        <motion.section
+          initial="hidden"
+          animate="visible"
+          custom={7}
+          variants={fadeUp}
+          className="space-y-4 pt-4"
+        >
+          <div className="flex items-center justify-between ">
+            <h3 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-muted-foreground" />
+              Execution History
+            </h3>
+            <Badge variant="outline" className="font-mono">
+              {runs.length} runs
+            </Badge>
           </div>
-        </div>
-      </motion.section>
-    </div>
+
+          <div className="rounded-xl border bg-card overflow-hidden">
+            <div className="divide-y divide-border ">
+              {runs.map((run, i) => (
+                <motion.div
+                  key={run.id}
+                  initial="hidden"
+                  animate="visible"
+                  custom={8 + i * 0.5}
+                  variants={fadeUp}
+                  className="p-4 hover:bg-muted/50 transition-colors group cursor-pointer"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
+                        <Clock className="h-3 w-3 shrink-0" />
+                        {new Date(run.createdAt).toLocaleString()}
+                      </div>
+                      <p className="text-sm text-foreground leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {run?.llmResponse || ""}
+                        </ReactMarkdown>
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1" />
+                  </div>
+                </motion.div>
+              ))}
+              {runs.length === 0 && (
+                <div className="p-12 text-center text-muted-foreground italic text-sm">
+                  No execution history found for this agent.
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.section>
+      </div>
   );
 }

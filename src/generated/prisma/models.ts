@@ -11,8 +11,6 @@
 export type * from './models/MarketScope'
 export type * from './models/RiskLimits'
 export type * from './models/Capital'
-export type * from './models/ExchangeCredentials'
-export type * from './models/LLmCred'
 export type * from './models/URL'
 export type * from './models/User'
 export type * from './models/Session'
