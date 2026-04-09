@@ -87,44 +87,14 @@ export const agentsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const exchange = await prisma.exchange.findUnique({
-        where: { id: input.exchangeId }
-      });
-      
-      if (!exchange) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: "Exchange not Found"
-        });
-      }
-      
-      const credential = await prisma.credentials.findUnique({
-        where: { id: input.credentialId }
-      });
-      if (!credential && input.credentialId) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: "Credential not Found"
-        });
-      }
+  
       return await prisma.agent.create({
         data: {
           name: input.name, 
           type: input.type,
           credentialId: input.credentialId,
           exchangeId: input.exchangeId,
-          credential: credential ? {
-            type: credential?.type,
-            apiKey: credential?.apiKey,
-          } : null,
           temperature: input.temperature,
-          exchange: {
-            name: exchange?.name,
-            apiKey: exchange?.apiKey,
-            secret: exchange?.secret,
-            sandbox: exchange?.sandbox,
-            urls: exchange?.urls,
-          },
           market: {
             symbols: input.market.symbols,
             agentCycles: input.market.agentCycles,
@@ -192,26 +162,7 @@ export const agentsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const exchange = await prisma.exchange.findUnique({
-        where: { id: input.exchangeId }
-      });
-      
-      if (!exchange) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: "Exchange not Found"
-        });
-      }
-      
-      const credential = await prisma.credentials.findUnique({
-        where: { id: input.credentialId }
-      });
-      if (!credential && input.credentialId) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: "Credential not Found"
-        });
-      }
+     
       return await prisma.agent.update({
         where: { id: input.id },
         data: {
@@ -220,17 +171,6 @@ export const agentsRouter = createTRPCRouter({
           credentialId: input.credentialId,
           temperature: input.temperature,
           exchangeId: input.exchangeId,
-          credential: credential ? {
-            type: credential?.type,
-            apiKey: credential?.apiKey,
-          } : null,
-          exchange: {
-            name: exchange?.name,
-            apiKey: exchange?.apiKey,
-            secret: exchange?.secret,
-            sandbox: exchange?.sandbox,
-            urls: exchange?.urls,
-          },
           market: {
             symbols: input.market.symbols,
             agentCycles: input.market.agentCycles,

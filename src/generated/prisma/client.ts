@@ -60,16 +60,6 @@ export type RiskLimits = Prisma.RiskLimitsModel
  */
 export type Capital = Prisma.CapitalModel
 /**
- * Model ExchangeCredentials
- * 
- */
-export type ExchangeCredentials = Prisma.ExchangeCredentialsModel
-/**
- * Model LLmCred
- * 
- */
-export type LLmCred = Prisma.LLmCredModel
-/**
  * Model URL
  * 
  */

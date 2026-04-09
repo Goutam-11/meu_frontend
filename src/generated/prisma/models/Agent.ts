@@ -274,9 +274,7 @@ export type AgentWhereInput = {
   credentialId?: Prisma.StringNullableFilter<"Agent"> | string | null
   exchangeId?: Prisma.StringFilter<"Agent"> | string
   llmModel?: Prisma.StringNullableFilter<"Agent"> | string | null
-  credential?: Prisma.XOR<Prisma.LLmCredNullableCompositeFilter, Prisma.LLmCredObjectEqualityInput> | null
   temperature?: Prisma.FloatNullableFilter<"Agent"> | number | null
-  exchange?: Prisma.XOR<Prisma.ExchangeCredentialsCompositeFilter, Prisma.ExchangeCredentialsObjectEqualityInput>
   market?: Prisma.XOR<Prisma.MarketScopeCompositeFilter, Prisma.MarketScopeObjectEqualityInput>
   risk?: Prisma.XOR<Prisma.RiskLimitsCompositeFilter, Prisma.RiskLimitsObjectEqualityInput>
   capital?: Prisma.XOR<Prisma.CapitalCompositeFilter, Prisma.CapitalObjectEqualityInput>
@@ -295,9 +293,7 @@ export type AgentOrderByWithRelationInput = {
   credentialId?: Prisma.SortOrder
   exchangeId?: Prisma.SortOrder
   llmModel?: Prisma.SortOrder
-  credential?: Prisma.LLmCredOrderByInput
   temperature?: Prisma.SortOrder
-  exchange?: Prisma.ExchangeCredentialsOrderByInput
   market?: Prisma.MarketScopeOrderByInput
   risk?: Prisma.RiskLimitsOrderByInput
   capital?: Prisma.CapitalOrderByInput
@@ -319,9 +315,7 @@ export type AgentWhereUniqueInput = Prisma.AtLeast<{
   credentialId?: Prisma.StringNullableFilter<"Agent"> | string | null
   exchangeId?: Prisma.StringFilter<"Agent"> | string
   llmModel?: Prisma.StringNullableFilter<"Agent"> | string | null
-  credential?: Prisma.XOR<Prisma.LLmCredNullableCompositeFilter, Prisma.LLmCredObjectEqualityInput> | null
   temperature?: Prisma.FloatNullableFilter<"Agent"> | number | null
-  exchange?: Prisma.XOR<Prisma.ExchangeCredentialsCompositeFilter, Prisma.ExchangeCredentialsObjectEqualityInput>
   market?: Prisma.XOR<Prisma.MarketScopeCompositeFilter, Prisma.MarketScopeObjectEqualityInput>
   risk?: Prisma.XOR<Prisma.RiskLimitsCompositeFilter, Prisma.RiskLimitsObjectEqualityInput>
   capital?: Prisma.XOR<Prisma.CapitalCompositeFilter, Prisma.CapitalObjectEqualityInput>
@@ -380,9 +374,7 @@ export type AgentCreateInput = {
   credentialId?: string | null
   exchangeId: string
   llmModel?: string | null
-  credential?: Prisma.XOR<Prisma.LLmCredNullableCreateEnvelopeInput, Prisma.LLmCredCreateInput> | null
   temperature?: number | null
-  exchange: Prisma.XOR<Prisma.ExchangeCredentialsCreateEnvelopeInput, Prisma.ExchangeCredentialsCreateInput>
   market: Prisma.XOR<Prisma.MarketScopeCreateEnvelopeInput, Prisma.MarketScopeCreateInput>
   risk: Prisma.XOR<Prisma.RiskLimitsCreateEnvelopeInput, Prisma.RiskLimitsCreateInput>
   capital: Prisma.XOR<Prisma.CapitalCreateEnvelopeInput, Prisma.CapitalCreateInput>
@@ -401,9 +393,7 @@ export type AgentUncheckedCreateInput = {
   credentialId?: string | null
   exchangeId: string
   llmModel?: string | null
-  credential?: Prisma.XOR<Prisma.LLmCredNullableCreateEnvelopeInput, Prisma.LLmCredCreateInput> | null
   temperature?: number | null
-  exchange: Prisma.XOR<Prisma.ExchangeCredentialsCreateEnvelopeInput, Prisma.ExchangeCredentialsCreateInput>
   market: Prisma.XOR<Prisma.MarketScopeCreateEnvelopeInput, Prisma.MarketScopeCreateInput>
   risk: Prisma.XOR<Prisma.RiskLimitsCreateEnvelopeInput, Prisma.RiskLimitsCreateInput>
   capital: Prisma.XOR<Prisma.CapitalCreateEnvelopeInput, Prisma.CapitalCreateInput>
@@ -421,9 +411,7 @@ export type AgentUpdateInput = {
   credentialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   exchangeId?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  credential?: Prisma.XOR<Prisma.LLmCredNullableUpdateEnvelopeInput, Prisma.LLmCredCreateInput> | null
   temperature?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  exchange?: Prisma.XOR<Prisma.ExchangeCredentialsUpdateEnvelopeInput, Prisma.ExchangeCredentialsCreateInput>
   market?: Prisma.XOR<Prisma.MarketScopeUpdateEnvelopeInput, Prisma.MarketScopeCreateInput>
   risk?: Prisma.XOR<Prisma.RiskLimitsUpdateEnvelopeInput, Prisma.RiskLimitsCreateInput>
   capital?: Prisma.XOR<Prisma.CapitalUpdateEnvelopeInput, Prisma.CapitalCreateInput>
@@ -441,9 +429,7 @@ export type AgentUncheckedUpdateInput = {
   credentialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   exchangeId?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  credential?: Prisma.XOR<Prisma.LLmCredNullableUpdateEnvelopeInput, Prisma.LLmCredCreateInput> | null
   temperature?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  exchange?: Prisma.XOR<Prisma.ExchangeCredentialsUpdateEnvelopeInput, Prisma.ExchangeCredentialsCreateInput>
   market?: Prisma.XOR<Prisma.MarketScopeUpdateEnvelopeInput, Prisma.MarketScopeCreateInput>
   risk?: Prisma.XOR<Prisma.RiskLimitsUpdateEnvelopeInput, Prisma.RiskLimitsCreateInput>
   capital?: Prisma.XOR<Prisma.CapitalUpdateEnvelopeInput, Prisma.CapitalCreateInput>
@@ -462,9 +448,7 @@ export type AgentCreateManyInput = {
   credentialId?: string | null
   exchangeId: string
   llmModel?: string | null
-  credential?: Prisma.XOR<Prisma.LLmCredNullableCreateEnvelopeInput, Prisma.LLmCredCreateInput> | null
   temperature?: number | null
-  exchange: Prisma.XOR<Prisma.ExchangeCredentialsCreateEnvelopeInput, Prisma.ExchangeCredentialsCreateInput>
   market: Prisma.XOR<Prisma.MarketScopeCreateEnvelopeInput, Prisma.MarketScopeCreateInput>
   risk: Prisma.XOR<Prisma.RiskLimitsCreateEnvelopeInput, Prisma.RiskLimitsCreateInput>
   capital: Prisma.XOR<Prisma.CapitalCreateEnvelopeInput, Prisma.CapitalCreateInput>
@@ -482,9 +466,7 @@ export type AgentUpdateManyMutationInput = {
   credentialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   exchangeId?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  credential?: Prisma.XOR<Prisma.LLmCredNullableUpdateEnvelopeInput, Prisma.LLmCredCreateInput> | null
   temperature?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  exchange?: Prisma.XOR<Prisma.ExchangeCredentialsUpdateEnvelopeInput, Prisma.ExchangeCredentialsCreateInput>
   market?: Prisma.XOR<Prisma.MarketScopeUpdateEnvelopeInput, Prisma.MarketScopeCreateInput>
   risk?: Prisma.XOR<Prisma.RiskLimitsUpdateEnvelopeInput, Prisma.RiskLimitsCreateInput>
   capital?: Prisma.XOR<Prisma.CapitalUpdateEnvelopeInput, Prisma.CapitalCreateInput>
@@ -502,9 +484,7 @@ export type AgentUncheckedUpdateManyInput = {
   credentialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   exchangeId?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  credential?: Prisma.XOR<Prisma.LLmCredNullableUpdateEnvelopeInput, Prisma.LLmCredCreateInput> | null
   temperature?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  exchange?: Prisma.XOR<Prisma.ExchangeCredentialsUpdateEnvelopeInput, Prisma.ExchangeCredentialsCreateInput>
   market?: Prisma.XOR<Prisma.MarketScopeUpdateEnvelopeInput, Prisma.MarketScopeCreateInput>
   risk?: Prisma.XOR<Prisma.RiskLimitsUpdateEnvelopeInput, Prisma.RiskLimitsCreateInput>
   capital?: Prisma.XOR<Prisma.CapitalUpdateEnvelopeInput, Prisma.CapitalCreateInput>
@@ -513,19 +493,6 @@ export type AgentUncheckedUpdateManyInput = {
   lastRun?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type LLmCredObjectEqualityInput = {
-  type: $Enums.CredentialType
-  apiKey: string
-}
-
-export type ExchangeCredentialsObjectEqualityInput = {
-  name: string
-  apiKey: string
-  secret: string
-  sandbox: boolean
-  urls: Prisma.URLObjectEqualityInput
 }
 
 export type MarketScopeObjectEqualityInput = {
@@ -600,19 +567,6 @@ export type AgentSumOrderByAggregateInput = {
   temperature?: Prisma.SortOrder
 }
 
-export type LLmCredCreateInput = {
-  type: $Enums.CredentialType
-  apiKey: string
-}
-
-export type ExchangeCredentialsCreateInput = {
-  name: string
-  apiKey: string
-  secret: string
-  sandbox?: boolean
-  urls: Prisma.URLCreateInput
-}
-
 export type MarketScopeCreateInput = {
   symbols?: Prisma.MarketScopeCreatesymbolsInput | string[]
   agentCycles: number
@@ -660,9 +614,7 @@ export type AgentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   credentialId?: boolean
   exchangeId?: boolean
   llmModel?: boolean
-  credential?: boolean | Prisma.LLmCredDefaultArgs<ExtArgs>
   temperature?: boolean
-  exchange?: boolean | Prisma.ExchangeCredentialsDefaultArgs<ExtArgs>
   market?: boolean | Prisma.MarketScopeDefaultArgs<ExtArgs>
   risk?: boolean | Prisma.RiskLimitsDefaultArgs<ExtArgs>
   capital?: boolean | Prisma.CapitalDefaultArgs<ExtArgs>
@@ -691,7 +643,7 @@ export type AgentSelectScalar = {
   updatedAt?: boolean
 }
 
-export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "userId" | "status" | "credentialId" | "exchangeId" | "llmModel" | "credential" | "temperature" | "exchange" | "market" | "risk" | "capital" | "strategy" | "type" | "lastRun" | "createdAt" | "updatedAt", ExtArgs["result"]["agent"]>
+export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "userId" | "status" | "credentialId" | "exchangeId" | "llmModel" | "temperature" | "market" | "risk" | "capital" | "strategy" | "type" | "lastRun" | "createdAt" | "updatedAt", ExtArgs["result"]["agent"]>
 export type AgentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $AgentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -713,8 +665,6 @@ export type $AgentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     updatedAt: Date
   }, ExtArgs["result"]["agent"]>
   composites: {
-    credential: Prisma.$LLmCredPayload | null
-    exchange: Prisma.$ExchangeCredentialsPayload
     market: Prisma.$MarketScopePayload
     risk: Prisma.$RiskLimitsPayload
     capital: Prisma.$CapitalPayload

@@ -23,7 +23,7 @@ export const useCreateAgent = () => {
   
   return useMutation(trpc.agents.create.mutationOptions({
     onSuccess: () => {
-      toast.info("Agent created successfully");
+      toast.success("Agent created successfully");
       queryClient.invalidateQueries(trpc.agents.getAll.queryOptions({}));
     },
     onError: (error) => {
@@ -37,7 +37,7 @@ export const useUpdateAgent = () => {
   
   return useMutation(trpc.agents.update.mutationOptions({
     onSuccess: (data) => {
-      toast.info("Agent updated successfully");
+      toast.success("Agent updated successfully");
       queryClient.invalidateQueries(trpc.agents.getAll.queryOptions({}));
       queryClient.invalidateQueries(trpc.agents.getOne.queryOptions({ id: data.id }));
     },
@@ -53,7 +53,7 @@ export const useDeleteAgent = () => {
   
   return useMutation(trpc.agents.delete.mutationOptions({
     onSuccess: (data) => {
-      toast.info("Agent deleted successfully");
+      toast.success("Agent deleted successfully");
       queryClient.invalidateQueries(trpc.agents.getAll.queryOptions({}));
       queryClient.invalidateQueries(trpc.agents.getOne.queryOptions({ id: data.id }));
     },
@@ -69,7 +69,7 @@ export const useStatusChangeAgent = () => {
   
   return useMutation(trpc.agents.statusChange.mutationOptions({
     onSuccess: (data) => {
-      toast.info("Agent status changed successfully");
+      toast.success("Agent status changed successfully");
       queryClient.invalidateQueries(trpc.agents.getAll.queryOptions({}));
       queryClient.invalidateQueries(trpc.agents.getOne.queryOptions({ id: data.id }));
     },
