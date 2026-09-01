@@ -31,6 +31,8 @@ export type ExchangeMinAggregateOutputType = {
   apiKey: string | null
   secret: string | null
   sandbox: boolean | null
+  accessToken: string | null
+  tokenIssuedAt: Date | null
   lastSyncedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -43,6 +45,8 @@ export type ExchangeMaxAggregateOutputType = {
   apiKey: string | null
   secret: string | null
   sandbox: boolean | null
+  accessToken: string | null
+  tokenIssuedAt: Date | null
   lastSyncedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -55,6 +59,8 @@ export type ExchangeCountAggregateOutputType = {
   apiKey: number
   secret: number
   sandbox: number
+  accessToken: number
+  tokenIssuedAt: number
   lastSyncedAt: number
   createdAt: number
   updatedAt: number
@@ -69,6 +75,8 @@ export type ExchangeMinAggregateInputType = {
   apiKey?: true
   secret?: true
   sandbox?: true
+  accessToken?: true
+  tokenIssuedAt?: true
   lastSyncedAt?: true
   createdAt?: true
   updatedAt?: true
@@ -81,6 +89,8 @@ export type ExchangeMaxAggregateInputType = {
   apiKey?: true
   secret?: true
   sandbox?: true
+  accessToken?: true
+  tokenIssuedAt?: true
   lastSyncedAt?: true
   createdAt?: true
   updatedAt?: true
@@ -93,6 +103,8 @@ export type ExchangeCountAggregateInputType = {
   apiKey?: true
   secret?: true
   sandbox?: true
+  accessToken?: true
+  tokenIssuedAt?: true
   lastSyncedAt?: true
   createdAt?: true
   updatedAt?: true
@@ -178,6 +190,8 @@ export type ExchangeGroupByOutputType = {
   apiKey: string
   secret: string
   sandbox: boolean
+  accessToken: string | null
+  tokenIssuedAt: Date | null
   lastSyncedAt: Date | null
   createdAt: Date
   updatedAt: Date
@@ -212,6 +226,8 @@ export type ExchangeWhereInput = {
   secret?: Prisma.StringFilter<"Exchange"> | string
   sandbox?: Prisma.BoolFilter<"Exchange"> | boolean
   urls?: Prisma.XOR<Prisma.URLCompositeFilter, Prisma.URLObjectEqualityInput>
+  accessToken?: Prisma.StringNullableFilter<"Exchange"> | string | null
+  tokenIssuedAt?: Prisma.DateTimeNullableFilter<"Exchange"> | Date | string | null
   lastSyncedAt?: Prisma.DateTimeNullableFilter<"Exchange"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Exchange"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Exchange"> | Date | string
@@ -225,6 +241,8 @@ export type ExchangeOrderByWithRelationInput = {
   secret?: Prisma.SortOrder
   sandbox?: Prisma.SortOrder
   urls?: Prisma.URLOrderByInput
+  accessToken?: Prisma.SortOrder
+  tokenIssuedAt?: Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -241,6 +259,8 @@ export type ExchangeWhereUniqueInput = Prisma.AtLeast<{
   secret?: Prisma.StringFilter<"Exchange"> | string
   sandbox?: Prisma.BoolFilter<"Exchange"> | boolean
   urls?: Prisma.XOR<Prisma.URLCompositeFilter, Prisma.URLObjectEqualityInput>
+  accessToken?: Prisma.StringNullableFilter<"Exchange"> | string | null
+  tokenIssuedAt?: Prisma.DateTimeNullableFilter<"Exchange"> | Date | string | null
   lastSyncedAt?: Prisma.DateTimeNullableFilter<"Exchange"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Exchange"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Exchange"> | Date | string
@@ -253,6 +273,8 @@ export type ExchangeOrderByWithAggregationInput = {
   apiKey?: Prisma.SortOrder
   secret?: Prisma.SortOrder
   sandbox?: Prisma.SortOrder
+  accessToken?: Prisma.SortOrder
+  tokenIssuedAt?: Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -271,6 +293,8 @@ export type ExchangeScalarWhereWithAggregatesInput = {
   apiKey?: Prisma.StringWithAggregatesFilter<"Exchange"> | string
   secret?: Prisma.StringWithAggregatesFilter<"Exchange"> | string
   sandbox?: Prisma.BoolWithAggregatesFilter<"Exchange"> | boolean
+  accessToken?: Prisma.StringNullableWithAggregatesFilter<"Exchange"> | string | null
+  tokenIssuedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Exchange"> | Date | string | null
   lastSyncedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Exchange"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Exchange"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Exchange"> | Date | string
@@ -284,6 +308,8 @@ export type ExchangeCreateInput = {
   secret: string
   sandbox?: boolean
   urls: Prisma.XOR<Prisma.URLCreateEnvelopeInput, Prisma.URLCreateInput>
+  accessToken?: string | null
+  tokenIssuedAt?: Date | string | null
   lastSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -297,6 +323,8 @@ export type ExchangeUncheckedCreateInput = {
   secret: string
   sandbox?: boolean
   urls: Prisma.XOR<Prisma.URLCreateEnvelopeInput, Prisma.URLCreateInput>
+  accessToken?: string | null
+  tokenIssuedAt?: Date | string | null
   lastSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -309,6 +337,8 @@ export type ExchangeUpdateInput = {
   secret?: Prisma.StringFieldUpdateOperationsInput | string
   sandbox?: Prisma.BoolFieldUpdateOperationsInput | boolean
   urls?: Prisma.XOR<Prisma.URLUpdateEnvelopeInput, Prisma.URLCreateInput>
+  accessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tokenIssuedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -321,6 +351,8 @@ export type ExchangeUncheckedUpdateInput = {
   secret?: Prisma.StringFieldUpdateOperationsInput | string
   sandbox?: Prisma.BoolFieldUpdateOperationsInput | boolean
   urls?: Prisma.XOR<Prisma.URLUpdateEnvelopeInput, Prisma.URLCreateInput>
+  accessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tokenIssuedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -334,6 +366,8 @@ export type ExchangeCreateManyInput = {
   secret: string
   sandbox?: boolean
   urls: Prisma.XOR<Prisma.URLCreateEnvelopeInput, Prisma.URLCreateInput>
+  accessToken?: string | null
+  tokenIssuedAt?: Date | string | null
   lastSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -346,6 +380,8 @@ export type ExchangeUpdateManyMutationInput = {
   secret?: Prisma.StringFieldUpdateOperationsInput | string
   sandbox?: Prisma.BoolFieldUpdateOperationsInput | boolean
   urls?: Prisma.XOR<Prisma.URLUpdateEnvelopeInput, Prisma.URLCreateInput>
+  accessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tokenIssuedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -358,6 +394,8 @@ export type ExchangeUncheckedUpdateManyInput = {
   secret?: Prisma.StringFieldUpdateOperationsInput | string
   sandbox?: Prisma.BoolFieldUpdateOperationsInput | boolean
   urls?: Prisma.XOR<Prisma.URLUpdateEnvelopeInput, Prisma.URLCreateInput>
+  accessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tokenIssuedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -375,6 +413,8 @@ export type ExchangeCountOrderByAggregateInput = {
   apiKey?: Prisma.SortOrder
   secret?: Prisma.SortOrder
   sandbox?: Prisma.SortOrder
+  accessToken?: Prisma.SortOrder
+  tokenIssuedAt?: Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -387,6 +427,8 @@ export type ExchangeMaxOrderByAggregateInput = {
   apiKey?: Prisma.SortOrder
   secret?: Prisma.SortOrder
   sandbox?: Prisma.SortOrder
+  accessToken?: Prisma.SortOrder
+  tokenIssuedAt?: Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -399,6 +441,8 @@ export type ExchangeMinOrderByAggregateInput = {
   apiKey?: Prisma.SortOrder
   secret?: Prisma.SortOrder
   sandbox?: Prisma.SortOrder
+  accessToken?: Prisma.SortOrder
+  tokenIssuedAt?: Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -419,6 +463,8 @@ export type ExchangeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   secret?: boolean
   sandbox?: boolean
   urls?: boolean | Prisma.URLDefaultArgs<ExtArgs>
+  accessToken?: boolean
+  tokenIssuedAt?: boolean
   lastSyncedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -433,12 +479,14 @@ export type ExchangeSelectScalar = {
   apiKey?: boolean
   secret?: boolean
   sandbox?: boolean
+  accessToken?: boolean
+  tokenIssuedAt?: boolean
   lastSyncedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ExchangeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "name" | "apiKey" | "secret" | "sandbox" | "urls" | "lastSyncedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["exchange"]>
+export type ExchangeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "name" | "apiKey" | "secret" | "sandbox" | "urls" | "accessToken" | "tokenIssuedAt" | "lastSyncedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["exchange"]>
 export type ExchangeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $ExchangePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -451,6 +499,8 @@ export type $ExchangePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     apiKey: string
     secret: string
     sandbox: boolean
+    accessToken: string | null
+    tokenIssuedAt: Date | null
     lastSyncedAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -854,6 +904,8 @@ export interface ExchangeFieldRefs {
   readonly apiKey: Prisma.FieldRef<"Exchange", 'String'>
   readonly secret: Prisma.FieldRef<"Exchange", 'String'>
   readonly sandbox: Prisma.FieldRef<"Exchange", 'Boolean'>
+  readonly accessToken: Prisma.FieldRef<"Exchange", 'String'>
+  readonly tokenIssuedAt: Prisma.FieldRef<"Exchange", 'DateTime'>
   readonly lastSyncedAt: Prisma.FieldRef<"Exchange", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Exchange", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Exchange", 'DateTime'>

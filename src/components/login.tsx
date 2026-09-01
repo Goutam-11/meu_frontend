@@ -58,9 +58,12 @@ export default function LoginForm() {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl">Login to an existing account</CardTitle>
-        <CardDescription>
-          Enter your details below to login to your account.
+        <CardTitle className="text-xl font-bold tracking-tight">
+          <span className="text-primary">&gt;_</span> sign in
+          <span className="cursor-blink" aria-hidden />
+        </CardTitle>
+        <CardDescription className="tui-kicker !tracking-normal !normal-case !text-xs text-muted-foreground">
+          authenticate to command your agents_
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -72,9 +75,9 @@ export default function LoginForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="tui-kicker">email</FormLabel>
                   <FormControl>
-                    <Input placeholder="m@example.com" type="email" {...field} />
+                    <Input placeholder="operator@meu.dev" type="email" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -87,7 +90,7 @@ export default function LoginForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel className="tui-kicker">password</FormLabel>
                   <FormControl>
                     <Input type="password" {...field} />
                   </FormControl>
@@ -96,15 +99,19 @@ export default function LoginForm() {
               )}
             />
 
-            <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? 'Logging in...' : 'Login'}
+            <Button
+              type="submit"
+              className="w-full ring-1 ring-inset ring-primary transition-colors hover:bg-transparent hover:text-primary"
+              disabled={isPending}
+            >
+              {isPending ? "[ authenticating… ]" : "$ login --now"}
             </Button>
             <div className="flex justify-center">
               <p className="text-muted-foreground text-sm">
-              Don&apos;t have an account?
-              <Link href="/signup" className="text-sm font-bold text-accent-foreground underline">
-                 Register here
-                </Link>
+              no account yet?{" "}
+              <Link href="/signup" className="font-bold text-primary underline-offset-4 hover:underline">
+                register here →
+              </Link>
               </p>
             </div>
           </form>

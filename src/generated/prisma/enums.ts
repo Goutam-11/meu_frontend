@@ -88,7 +88,9 @@ export type NotificationStatus = (typeof NotificationStatus)[keyof typeof Notifi
 export const CredentialType = {
   OPENROUTER: 'OPENROUTER',
   OPENAI: 'OPENAI',
-  ANTHROPIC: 'ANTHROPIC'
+  ANTHROPIC: 'ANTHROPIC',
+  NVIDIA_NIM: 'NVIDIA_NIM',
+  OPENCODE: 'OPENCODE'
 } as const
 
 export type CredentialType = (typeof CredentialType)[keyof typeof CredentialType]

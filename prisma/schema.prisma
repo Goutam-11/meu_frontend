@@ -20,6 +20,7 @@ model User {
   email         String
   emailVerified Boolean   @default(false)
   image         String?
+  uiSettings    Json?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
@@ -145,6 +146,8 @@ model Exchange{
  secret String
  sandbox Boolean @default(false)
  urls URL
+ accessToken String?
+ tokenIssuedAt DateTime?
  lastSyncedAt DateTime?
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
@@ -263,10 +266,24 @@ model Notification {
   @@index([status])
 }
 
+model PushSubscription {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
 enum CredentialType {
   OPENROUTER
   OPENAI
   ANTHROPIC
+  NVIDIA_NIM
+  OPENCODE
 }
 
 model Credentials {

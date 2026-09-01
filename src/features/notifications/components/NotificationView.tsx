@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import { motion, type Variants } from "framer-motion";
 import {
   Bell,
@@ -19,7 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useMarkAsRead, useSuspenseNotification } from "../hooks/use-notifications";
-import { formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 12 },
@@ -62,6 +63,13 @@ export default function NotificationDetailView({
   const statusCfg = statusConfig[notification!.status];
   const StatusIcon = statusCfg.icon;
   const markAsRead = useMarkAsRead();
+
+  useEffect(() => {
+    if (notification?.status === "UNREAD") {
+      markAsRead.mutate({ id: notifId });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notifId, notification?.status]);
   
   const handleMarkAsRead = () => {
     markAsRead.mutate({ id: notifId });
@@ -239,11 +247,11 @@ export default function NotificationDetailView({
                 ...(notification?.exchangeId ? [{ label: "Exchange ID", value: notification?.exchangeId, mono: true, truncate: true }] : []),
                 {
                   label: "Created At",
-                  value: new Date(notification!.createdAt).toLocaleString(),
+                  value: format(new Date(notification!.createdAt), "MMM d, yyyy HH:mm"),
                   tabular: true,
                 },
                 ...(notification?.readAt
-                  ? [{ label: "Read At", value: new Date(notification?.readAt).toLocaleString(), tabular: true }]
+                  ? [{ label: "Read At", value: format(new Date(notification.readAt), "MMM d, yyyy HH:mm"), tabular: true }]
                   : []),
               ].map((item, i, arr) => (
                 <div key={item.label}>

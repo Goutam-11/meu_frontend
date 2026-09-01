@@ -2,6 +2,7 @@ import "server-only";
 import prisma from "./db";
 import ccxt, { Balances, Position, Trade } from "ccxt";
 import { TRPCError } from "@trpc/server";
+import { getKiteDashboardData, isZerodhaExchange } from "./kite";
 // ccxt exchange map
 
 
@@ -42,6 +43,13 @@ export async function getExchangeData(exchangeId: string) {
   }
 
   const exchangeName = exchangeData.name.toUpperCase() as ExchangeName;
+
+  // Zerodha has no ccxt adapter — served via Kite REST with the stored
+  // daily access token. Returns kiteTokenExpired instead of throwing when
+  // the token needs re-auth.
+  if (isZerodhaExchange(exchangeData.name)) {
+    return getKiteDashboardData(exchangeData.id, exchangeData.userId);
+  }
 
   if (!exchangeMap[exchangeName]) {
     throw new TRPCError({

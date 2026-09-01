@@ -8,3 +8,4 @@ export * from "./EntityList";
 export * from "./EntityItem";
 export * from "./EntityAvatar";
 export * from "./EntityBadge";
+export * from "./EntityListSkeleton";

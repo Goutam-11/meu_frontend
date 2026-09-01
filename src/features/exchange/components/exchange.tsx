@@ -14,20 +14,28 @@ import {
 } from "@/components/entityComponents";
 import { CandlestickChartIcon } from "lucide-react";
 import { formatDate, formatDistanceToNow } from "date-fns";
-import { useDeleteExchange, useSuspenseExchanges } from "../hooks/use-exchange";
+import { useDeleteExchange, useSuspenseExchangesPaginated } from "../hooks/use-exchange";
 import { useRouter } from "next/navigation";
 
 
 export default function ExchangesPage() {
-  const { data:exchanges } = useSuspenseExchanges()
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const router = useRouter()
   const deleteExchange = useDeleteExchange();
 
-  const filteredExcahnges = exchanges.filter((ex) =>
-    ex.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const { data } = useSuspenseExchangesPaginated({ page, search });
+  const exchanges = data.exchanges;
+  const pagination = data.pagination;
+
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
 
 
   return (
@@ -43,20 +51,20 @@ export default function ExchangesPage() {
       search={
         <EntitySearch
           value={search}
-          onChange={setSearch}
+          onChange={handleSearch}
           placeholder="Search exchanges..."
         />
       }
       pagination={
         <EntityPagination
-          page={page}
-          totalPages={2}
-          onPageChange={setPage}
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={handlePageChange}
         />
       }
     >
       <EntityList
-        items={filteredExcahnges}
+        items={exchanges}
         getKey={(ex) => ex.id}
         emptyView={
           <EmptyView
@@ -84,25 +92,6 @@ export default function ExchangesPage() {
                 {"Active"}
               </EntityBadge>
             }
-            // actions={
-            //   <div className="flex items-center gap-1">
-            //     <Button
-            //       variant="ghost"
-            //       size="icon"
-            //       className="size-8"
-            //       onClick={(e) => {
-            //         e.preventDefault();
-            //         e.stopPropagation();
-            //       }}
-            //     >
-            //       {copiedId === cred.id ? (
-            //         <CheckIcon className="size-4 text-emerald-500" />
-            //       ) : (
-            //         <CopyIcon className="size-4" />
-            //       )}
-            //     </Button>
-            //   </div>
-            // }
             onEdit={() => router.push(`/exchanges/${ex.id}/edit`)}
             onRemove={() => deleteExchange.mutate({id:ex.id})}
           />

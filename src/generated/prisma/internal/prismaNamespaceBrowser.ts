@@ -60,6 +60,7 @@ export const ModelName = {
   Trades: 'Trades',
   Positions: 'Positions',
   Notification: 'Notification',
+  PushSubscription: 'PushSubscription',
   Credentials: 'Credentials'
 } as const
 
@@ -75,6 +76,7 @@ export const UserScalarFieldEnum = {
   email: 'email',
   emailVerified: 'emailVerified',
   image: 'image',
+  uiSettings: 'uiSettings',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -153,6 +155,8 @@ export const ExchangeScalarFieldEnum = {
   apiKey: 'apiKey',
   secret: 'secret',
   sandbox: 'sandbox',
+  accessToken: 'accessToken',
+  tokenIssuedAt: 'tokenIssuedAt',
   lastSyncedAt: 'lastSyncedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -230,6 +234,19 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const PushSubscriptionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  endpoint: 'endpoint',
+  p256dh: 'p256dh',
+  auth: 'auth',
+  userAgent: 'userAgent',
+  createdAt: 'createdAt'
+} as const
+
+export type PushSubscriptionScalarFieldEnum = (typeof PushSubscriptionScalarFieldEnum)[keyof typeof PushSubscriptionScalarFieldEnum]
 
 
 export const CredentialsScalarFieldEnum = {

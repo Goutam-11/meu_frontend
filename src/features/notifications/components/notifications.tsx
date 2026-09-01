@@ -17,20 +17,30 @@ import {
   AlertTriangleIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useRemoveNotifications, useSuspenseNotifications } from "../hooks/use-notifications";
+import { useRemoveNotifications, useSuspenseNotifications, useMarkAllAsRead, useUnreadNotifications } from "../hooks/use-notifications";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
 export default function NotificationsPage() {
-  const { data: notifications } = useSuspenseNotifications();
-  const removeNotif = useRemoveNotifications();
-  const router = useRouter();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const filteredNotifications = notifications.filter((notification) =>
-    notification.title.toLowerCase().includes(search.toLowerCase())
-  );
+  const { data } = useSuspenseNotifications({ page, search });
+  const notifications = data.notifications;
+  const pagination = data.pagination;
+  const removeNotif = useRemoveNotifications();
+  const markAllRead = useMarkAllAsRead();
+  const { data: unreadData } = useUnreadNotifications();
+  const router = useRouter();
+
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
 
   const getTypeConfig = (type: string) => {
     switch (type) {
@@ -57,24 +67,29 @@ export default function NotificationsPage() {
         <div className="flex items-center justify-between gap-4">
           <EntitySearch
             value={search}
-            onChange={setSearch}
+            onChange={handleSearch}
             placeholder="Search notifications..."
           />
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={(unreadData?.count ?? 0) === 0 || markAllRead.isPending}
+            onClick={() => markAllRead.mutate()}
+          >
             Mark all as read
           </Button>
         </div>
       }
       pagination={
         <EntityPagination
-          page={page}
-          totalPages={2}
-          onPageChange={setPage}
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={handlePageChange}
         />
       }
     >
       <EntityList
-        items={filteredNotifications}
+        items={notifications}
         getKey={(notif) => notif.id}
         emptyView={
           <EmptyView

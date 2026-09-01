@@ -4,9 +4,12 @@ import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tansta
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-export const useSuspenseCredentials = () => {
+export const useSuspenseCredentials = ({ page, search }: {
+  page: number;
+  search: string;
+}) => {
   const trpc = useTRPC();
-  return useSuspenseQuery(trpc.credentials.getAll.queryOptions());
+  return useSuspenseQuery(trpc.credentials.getAll.queryOptions({ page, search }));
 };
 export const useSuspenseCredential = (id: string) => {
   const trpc = useTRPC();
@@ -28,6 +31,11 @@ export const useCredentialByType = (type: CredentialType) => {
   return useSuspenseQuery(trpc.credentials.getByType.queryOptions({ type }));
 };
 
+export const useAllCredentials = () => {
+  const trpc = useTRPC();
+  return useQuery(trpc.credentials.listAll.queryOptions());
+};
+
 export const useCreateCredential = () => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -35,7 +43,7 @@ export const useCreateCredential = () => {
   return useMutation(trpc.credentials.create.mutationOptions({
     onSuccess: (data) => {
       toast.success("Credential created successfully");
-      queryClient.invalidateQueries(trpc.credentials.getAll.queryOptions());
+      queryClient.invalidateQueries(trpc.credentials.getAll.queryOptions({}));
       queryClient.invalidateQueries(trpc.credentials.getOne.queryOptions({ id: data.id }));
       router.push("/credentials");
     },
@@ -52,7 +60,7 @@ export const useEditCredential = () => {
   return useMutation(trpc.credentials.update.mutationOptions({
     onSuccess: (data) => {
       toast.success("Credential updated successfully");
-      queryClient.invalidateQueries(trpc.credentials.getAll.queryOptions());
+      queryClient.invalidateQueries(trpc.credentials.getAll.queryOptions({}));
       queryClient.invalidateQueries(trpc.credentials.getOne.queryOptions({ id: data.id }));
       router.push("/credentials");
     },
@@ -69,7 +77,7 @@ export const useDeleteCredential = () => {
   return useMutation(trpc.credentials.delete.mutationOptions({
     onSuccess: (data) => {
       toast.success("Credential deleted successfully");
-      queryClient.invalidateQueries(trpc.credentials.getAll.queryOptions());
+      queryClient.invalidateQueries(trpc.credentials.getAll.queryOptions({}));
       queryClient.invalidateQueries(trpc.credentials.getOne.queryOptions({ id: data.id }));
       router.push("/credentials");
     },

@@ -20,16 +20,24 @@ import { toast } from "sonner";
 
 
 export default function CredentialsPage() {
-  const { data:credentials } = useSuspenseCredentials()
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const router = useRouter();
   const deleteCredential = useDeleteCredential();
 
-  const filteredCredentials = credentials.filter((cred) =>
-    cred.type.toLowerCase().includes(search.toLowerCase())
-  );
+  const { data } = useSuspenseCredentials({ page, search });
+  const credentials = data.credentials;
+  const pagination = data.pagination;
+
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
 
   const handleCopy = (key: string) => {
     navigator.clipboard.writeText(key);
@@ -52,26 +60,26 @@ export default function CredentialsPage() {
       search={
         <EntitySearch
           value={search}
-          onChange={setSearch}
+          onChange={handleSearch}
           placeholder="Search credentials..."
         />
       }
       pagination={
         <EntityPagination
-          page={page}
-          totalPages={2}
-          onPageChange={setPage}
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={handlePageChange}
         />
       }
     >
       <EntityList
-        items={filteredCredentials}
+        items={credentials}
         getKey={(cred) => cred.id}
         emptyView={
           <EmptyView
             title="No credentials found"
             message="Add your first API key or access token"
-            onNew={() => console.log("Add credential")}
+            onNew={() => router.push("/credentials/create")}
             newButtonLabel="Add Credential"
           />
         }

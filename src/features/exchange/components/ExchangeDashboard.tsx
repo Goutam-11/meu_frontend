@@ -1,5 +1,7 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { motion, type Variants } from "framer-motion";
 import {
   ArrowUpDown,
@@ -15,6 +17,9 @@ import {
   Clock,
   ArrowUpRight,
   ArrowDownRight,
+  KeyRound,
+  ExternalLink,
+  CopyIcon,
 } from "lucide-react";
 import {
   Area,
@@ -51,8 +56,13 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn, computePnlSeries } from "@/lib/utils";
+import { format } from "date-fns";
 import { Exchange } from "@/generated/prisma/client";
-import { useGetExchangeData, useSuspenseExchanges } from "../hooks/use-exchange";
+import {
+  useGetExchangeData,
+  useKiteAuth,
+  useSuspenseExchanges,
+} from "../hooks/use-exchange";
 import type { Balances, Position, Trade } from "ccxt";
 
 
@@ -155,9 +165,133 @@ const ErrorAlert = ({
   );
 };
 
+/**
+ * Zerodha daily re-auth card. Kite access tokens are valid for ONE trading
+ * day — when expired, the dashboard shows this instead of portfolio data.
+ * If the Kite app&apos;s redirect URL points back at /exchanges?kite=<exchangeId>,
+ * the request_token is picked up and exchanged automatically.
+ */
+function ZerodhaReauth({
+  exchangeId,
+  exchangeName,
+  loginUrl,
+}: {
+  exchangeId: string;
+  exchangeName: string;
+  loginUrl: string | null;
+}) {
+  const kiteAuth = useKiteAuth(exchangeId);
+  const [token, setToken] = useState("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Auto-complete when redirected back from the Kite login page
+  const requestToken = searchParams.get("request_token");
+  const kiteExchangeId = searchParams.get("kite");
+  useEffect(() => {
+    if (
+      requestToken &&
+      kiteAuth.isPending === false &&
+      kiteAuth.isSuccess === false &&
+      (!kiteExchangeId || kiteExchangeId === exchangeId)
+    ) {
+      kiteAuth.mutate(
+        { id: exchangeId, requestToken },
+        {
+          onSettled: () => router.replace("/exchanges"),
+        },
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestToken, kiteExchangeId, exchangeId]);
+
+  return (
+    <Card className="border-primary/30">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <KeyRound className="size-4 text-chart-1" />
+          Zerodha session required — {exchangeName}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          Kite access tokens are valid for <strong>one trading day</strong>.
+          Log in to Zerodha to activate today&apos;s session — your agents resume
+          automatically once the session is active.
+        </p>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {loginUrl && (
+            <Button onClick={() => window.open(loginUrl, "_blank", "noopener")}>
+              <ExternalLink className="size-4" />
+              Log in to Zerodha
+            </Button>
+          )}
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <input
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              placeholder="…or paste request_token here"
+              className="h-9 w-full min-w-40 border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={token.trim().length < 10 || kiteAuth.isPending}
+              onClick={() => kiteAuth.mutate({ id: exchangeId, requestToken: token })}
+            >
+              {kiteAuth.isPending ? "Activating…" : "Activate"}
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">
+            For automatic token exchange, set this as the redirect URL in your
+            Kite app settings (developers.kite.trade → your app → Postman URL):
+          </p>
+          <div className="flex items-center gap-2">
+            <code
+              className="min-w-0 flex-1 truncate border border-border bg-secondary/60 px-3 py-2 font-mono text-[11px] text-foreground"
+            >
+              {typeof window !== "undefined"
+                ? `${window.location.origin}/exchanges?kite=${exchangeId}`
+                : `/exchanges?kite=${exchangeId}`}
+            </code>
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0"
+              onClick={async () => {
+                const url =
+                  typeof window !== "undefined"
+                    ? `${window.location.origin}/exchanges?kite=${exchangeId}`
+                    : `/exchanges?kite=${exchangeId}`;
+                try {
+                  await navigator.clipboard.writeText(url);
+                  toast.success("Redirect URL copied");
+                } catch {
+                  toast.error("Copy failed — select the URL manually");
+                }
+              }}
+            >
+              <CopyIcon className="size-3.5" />
+              Copy
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            After login Zerodha redirects here with the request_token — it is
+            exchanged automatically and today&apos;s session activates.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // Loading skeleton component
 const LoadingSkeleton = () => (
-  <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-10 space-y-8 max-w-7xl mx-auto">
+  <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-10 space-y-8">
     <div className="space-y-4">
       <div className="h-12 bg-secondary rounded-lg animate-pulse" />
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -186,6 +320,8 @@ export function ExchangeDashboard() {
     error,
     isTotallyBroken,
     refetch,
+    kiteTokenExpired,
+    kiteLoginUrl,
   } = useGetExchangeData(selectedExchange.id);
   
 
@@ -209,8 +345,40 @@ export function ExchangeDashboard() {
     return <LoadingSkeleton />;
   }
 
+  // Zerodha daily token expired → re-auth flow instead of empty portfolio
+  if (kiteTokenExpired) {
+    return (
+      <div className="h-full w-full bg-background p-4 sm:p-6 lg:p-10 space-y-8">
+        <motion.header
+          initial="hidden"
+          animate="visible"
+          custom={0}
+          variants={fadeUp}
+          className="flex items-center gap-5"
+        >
+          <div className="flex size-12 items-center justify-center rounded-xl bg-chart-1/10 text-chart-1 ring-1 ring-inset ring-chart-1/25 shrink-0">
+            <ArrowUpDown className="h-6 w-6" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              Dashboard Overview
+            </h1>
+            <p className="text-xs text-muted-foreground">
+              {selectedExchange.name} · session expired — re-auth required
+            </p>
+          </div>
+        </motion.header>
+        <ZerodhaReauth
+          exchangeId={selectedExchange.id}
+          exchangeName={selectedExchange.name}
+          loginUrl={kiteLoginUrl}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full w-full bg-background p-4 sm:p-6 lg:p-10 space-y-8 max-w-7xl mx-auto">
+    <div className="h-full w-full bg-background p-4 sm:p-6 lg:p-10 space-y-8">
       {/* Error Alert */}
       {error && (
         <ErrorAlert
@@ -231,15 +399,15 @@ export function ExchangeDashboard() {
         className="flex flex-col md:flex-row md:items-center justify-between gap-6"
       >
         <div className="flex items-center gap-5">
-          <div className="h-20 w-20 rounded-2xl bg-secondary flex items-center justify-center border shadow-inner shrink-0">
-            <ArrowUpDown className="h-10 w-10 text-primary" />
+          <div className="flex size-12 items-center justify-center rounded-xl bg-chart-1/10 text-chart-1 ring-1 ring-inset ring-chart-1/25 shrink-0">
+            <ArrowUpDown className="h-6 w-6" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-              Exchange Dashboard
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              Dashboard Overview
             </h1>
-            <p className="text-muted-foreground text-sm">
-              Monitor positions, trades & portfolio across connected exchanges
+            <p className="text-xs text-muted-foreground">
+              Monitor positions · trades · portfolio across connected exchanges
             </p>
           </div>
         </div>
@@ -267,7 +435,6 @@ export function ExchangeDashboard() {
                     <CommandItem
                       key={ex.id}
                       value={ex.name}
-                      onMouseEnter={() => console.log("ExchangeID: ", ex.id)}
                       onSelect={() => {
                         setSelectedExchange(ex);
                         setOpen(false);
@@ -308,7 +475,7 @@ export function ExchangeDashboard() {
             suffixColor:"text-primary",
             valueColor:
               totalUnrealizedPnl >= 0
-                ? "text-green-500"
+                ? "text-status-running"
                 : "text-destructive",
           },
           {
@@ -342,7 +509,7 @@ export function ExchangeDashboard() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {card.title}
                 </CardTitle>
-                <card.icon className="h-4 w-4 text-muted-foreground" />
+                <card.icon className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
                 <div
@@ -378,18 +545,34 @@ export function ExchangeDashboard() {
       >
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                Portfolio Growth
-              </CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Cumulative realized PnL from trade history
-              </p>
+            <div className="flex items-center gap-3">
+              <div
+                aria-hidden
+                className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-chart-1/15 text-chart-1 ring-1 ring-inset ring-chart-1/30"
+              >
+                <BarChart3 className="h-5 w-5" />
+              </div>
+              <div>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Portfolio Growth
+                </CardTitle>
+                <p
+                  className={cn(
+                    "mt-0.5 text-2xl font-bold tracking-tight tabular-nums",
+                    isPnlPositive ? "text-foreground" : "text-destructive",
+                  )}
+                >
+                  {isPnlPositive ? "+" : ""}
+                  {totalPnl.toFixed(2)}
+                  <span className="ml-1.5 text-sm font-normal text-muted-foreground">
+                    USDT
+                  </span>
+                </p>
+              </div>
             </div>
             <Badge
               variant={isPnlPositive ? "default" : "destructive"}
-              className="font-mono"
+              className="rounded-full"
             >
               {isPnlPositive ? "+" : ""}
               {totalPnl.toFixed(2)} USDT
@@ -399,57 +582,28 @@ export function ExchangeDashboard() {
             <div className="h-[280px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={pnlsafeData}>
-                  <defs>
-                    <linearGradient
-                      id="pnlGradient"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="5%"
-                        stopColor={
-                          isPnlPositive
-                            ? "hsl(152, 69%, 41%)"
-                            : "hsl(0, 84%, 60%)"
-                        }
-                        stopOpacity={0.3}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor={
-                          isPnlPositive
-                            ? "hsl(152, 69%, 41%)"
-                            : "hsl(0, 84%, 60%)"
-                        }
-                        stopOpacity={0}
-                      />
-                    </linearGradient>
-                  </defs>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     className="stroke-border/50"
                   />
                   <XAxis
                     dataKey="date"
-                    className="text-xs"
-                    tick={{ fill: "hsl(215, 16%, 47%)", fontSize: 12 }}
-                    axisLine={false}
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                    axisLine={{ stroke: "var(--border)" }}
                     tickLine={false}
                   />
                   <YAxis
-                    className="text-xs"
-                    tick={{ fill: "hsl(215, 16%, 47%)", fontSize: 12 }}
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
                     axisLine={false}
                     tickLine={false}
                     tickFormatter={(v) => `$${v}`}
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "hsl(0, 0%, 100%)",
-                      border: "1px solid hsl(220, 13%, 91%)",
-                      borderRadius: "8px",
+                      backgroundColor: "var(--popover)",
+                      color: "var(--popover-foreground)",
+                      border: "1px solid var(--border)",
+                      borderRadius: "var(--radius)",
                       fontSize: "12px",
                     }}
                     formatter={(value: number) => [
@@ -457,14 +611,45 @@ export function ExchangeDashboard() {
                       "PnL",
                     ]}
                   />
+                  <defs>
+                    <linearGradient id="pnlFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop
+                        offset="0%"
+                        stopColor={
+                          isPnlPositive
+                            ? "var(--chart-1)"
+                            : "var(--destructive)"
+                        }
+                        stopOpacity={0.25}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor={
+                          isPnlPositive
+                            ? "var(--chart-1)"
+                            : "var(--destructive)"
+                        }
+                        stopOpacity={0}
+                      />
+                    </linearGradient>
+                  </defs>
                   <Area
                     type="monotone"
                     dataKey="pnl"
                     stroke={
-                      isPnlPositive ? "hsl(152, 69%, 41%)" : "hsl(0, 84%, 60%)"
+                      isPnlPositive ? "var(--chart-1)" : "var(--destructive)"
                     }
                     strokeWidth={2}
-                    fill="url(#pnlGradient)"
+                    fill="url(#pnlFill)"
+                    dot={false}
+                    activeDot={{
+                      r: 4,
+                      fill: isPnlPositive
+                        ? "var(--chart-1)"
+                        : "var(--destructive)",
+                      stroke: "var(--background)",
+                      strokeWidth: 2,
+                    }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -484,7 +669,7 @@ export function ExchangeDashboard() {
         {/* Balances */}
         {safeData?.balance.USD !== undefined && <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-sm uppercase tracking-widest text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Balances
             </CardTitle>
           </CardHeader>
@@ -585,7 +770,7 @@ export function ExchangeDashboard() {
                                 ) : (
                                   <ArrowDownRight className="h-3 w-3 mr-1" />
                                 )}
-                                {JSON.stringify(pos.side, null, 2)}
+                                {pos.side ?? "—"}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right tabular-nums">
@@ -601,14 +786,14 @@ export function ExchangeDashboard() {
                               ${pos.liquidationPrice?.toLocaleString()}
                             </TableCell>
                             <TableCell className="text-right tabular-nums">
-                              {JSON.stringify(pos.leverage, null, 2)}x
+                              {pos.leverage != null ? `${pos.leverage}x` : "—"}
                             </TableCell>
                             <TableCell
                               className={cn(
                                 "text-right tabular-nums font-medium",
                                 pnlPositive
-                                  ? "text-green-500"
-                                  : "text-red-500",
+                                  ? "text-status-running"
+                                  : "text-destructive",
                               )}
                             >
                               {pos.info.unrealized_pnl}
@@ -678,9 +863,10 @@ export function ExchangeDashboard() {
                           <TableRow key={trade.id}>
                             <TableCell className="text-muted-foreground text-xs font-mono whitespace-nowrap">
                               <Clock className="h-3 w-3 inline mr-1.5" />
-                              {new Date(
-                                Number(trade.timestamp),
-                              ).toLocaleString()}
+                              {format(
+                                new Date(Number(trade.timestamp)),
+                                "MMM d, yyyy HH:mm:ss",
+                              )}
                             </TableCell>
                             <TableCell className="font-mono font-medium">
                               {trade.symbol}
@@ -721,6 +907,16 @@ export function ExchangeDashboard() {
                           </TableRow>
                         );
                       })}
+                      {safeData?.trades.length === 0 && (
+                        <TableRow>
+                          <TableCell
+                            colSpan={9}
+                            className="text-center py-12 text-muted-foreground italic"
+                          >
+                            No trades yet
+                          </TableCell>
+                        </TableRow>
+                      )}
                     </TableBody>
                   </Table>
                 </div>

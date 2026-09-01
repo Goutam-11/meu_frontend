@@ -53,7 +53,7 @@ export const EntityItem = ({
   const content = (
     <Card
       className={cn(
-        "group transition-all duration-200 hover:shadow-md hover:border-primary/20 cursor-pointer border-border",
+        "group transition-colors duration-150 hover:border-primary/50 hover:bg-accent/40 cursor-pointer",
         isRemoving && "opacity-50 cursor-not-allowed pointer-events-none",
         className
       )}

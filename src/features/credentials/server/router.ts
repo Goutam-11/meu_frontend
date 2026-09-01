@@ -3,16 +3,59 @@ import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import prisma from "@/lib/db";
 import { CredentialType } from "@/generated/prisma/enums";
 
+const ITEMS_PER_PAGE = 5;
+
 export const credentialsRouter = createTRPCRouter({
   getAll: protectedProcedure
-    .query(async ({ ctx }) => {
-      const credentials = await prisma.credentials.findMany({
-        where: {
-          userId: ctx.auth.user.id,
+    .input(
+      z.object({
+        page: z.number().min(1).default(1),
+        search: z.string().default(""),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const skip = (input.page - 1) * ITEMS_PER_PAGE;
+
+      const matchedTypes = Object.values(CredentialType).filter((type) =>
+        type.toLowerCase().includes(input.search.trim().toLowerCase())
+      );
+
+      const where = {
+        userId: ctx.auth.user.id,
+        type: { in: matchedTypes },
+      };
+
+      const [credentials, totalCount] = await Promise.all([
+        prisma.credentials.findMany({
+          where,
+          orderBy: {
+            createdAt: "desc",
+          },
+          skip,
+          take: ITEMS_PER_PAGE,
+        }),
+        prisma.credentials.count({ where }),
+      ]);
+
+      const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
+      return {
+        credentials,
+        pagination: {
+          page: input.page,
+          totalPages,
+          totalCount,
+          hasNextPage: input.page < totalPages,
+          hasPreviousPage: input.page > 1,
         },
-      });
-      return credentials;
+      };
     }),
+  listAll: protectedProcedure.query(async ({ ctx }) => {
+    return prisma.credentials.findMany({
+      where: { userId: ctx.auth.user.id },
+      orderBy: { createdAt: "desc" },
+    });
+  }),
   getByType: protectedProcedure
     .input(z.object({ type: z.enum(CredentialType) }))
     .query(async ({ ctx, input }) => {

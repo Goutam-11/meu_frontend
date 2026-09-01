@@ -602,14 +602,15 @@ function SidebarMenuBadge({
 function SidebarMenuSkeleton({
   className,
   showIcon = false,
+  index,
   ...props
 }: React.ComponentProps<"div"> & {
   showIcon?: boolean
+  index?: number
 }) {
-  // Random width between 50 to 90%.
-  const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`
-  }, [])
+  // Fixed widths to avoid SSR/client hydration mismatches.
+  const SKELETON_WIDTHS = ["70%", "85%", "55%", "90%", "62%"]
+  const skeletonIndex = typeof index === "number" ? index : 0
 
   return (
     <div
@@ -629,7 +630,8 @@ function SidebarMenuSkeleton({
         data-sidebar="menu-skeleton-text"
         style={
           {
-            "--skeleton-width": width,
+            "--skeleton-width":
+              SKELETON_WIDTHS[skeletonIndex % SKELETON_WIDTHS.length],
           } as React.CSSProperties
         }
       />

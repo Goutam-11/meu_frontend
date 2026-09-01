@@ -2,8 +2,8 @@
 import { motion, type Variants } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { format } from "date-fns";
 import {
-  Bot,
   Activity,
   ShieldCheck,
   Wallet,
@@ -60,7 +60,7 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-10 space-y-8 max-w-7xl mx-auto ">
+    <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-10 space-y-8 ">
       {/* L1: Header & Identity */}
       <motion.header
         initial="hidden"
@@ -70,8 +70,8 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
         className="flex flex-col md:flex-row md:items-center justify-between gap-6"
       >
         <div className="flex items-center gap-5">
-          <div className="h-20 w-20 rounded-2xl bg-secondary flex items-center justify-center border shadow-inner shrink-0">
-            <Bot className="h-10 w-10 text-primary" />
+          <div className="h-16 w-16 bg-primary/15 text-primary ring-1 ring-inset ring-primary/30 flex items-center justify-center text-xl font-extrabold tracking-tight shrink-0">
+            {agent.name.split(/[\s-_]+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
           </div>
           <div className="space-y-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
@@ -80,7 +80,7 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
               </h1>
               <Badge
                 variant={isRunning ? "default" : "destructive"}
-                className="px-3"
+                className="px-3 rounded-full ring-1 ring-inset ring-current/30"
               >
                 <span
                   className={`mr-1.5 inline-block h-2 w-2 rounded-full animate-pulse-dot ${
@@ -154,7 +154,7 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {card.title}
                 </CardTitle>
-                <card.icon className="h-4 w-4 text-muted-foreground" />
+                <card.icon className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold tabular-nums">
@@ -186,11 +186,11 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
         >
           {/* Market Scope */}
           <section className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2 text-foreground">
-              <Globe className="h-4 w-4 text-muted-foreground" />
+            <h3 className="tui-section">
+              <Globe className="h-4 w-4 text-primary" />
               Market Scope
             </h3>
-            <div className="rounded-xl border bg-card p-6 grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div className="glass p-6 grid grid-cols-1 sm:grid-cols-2 gap-8">
               <div className="space-y-2">
                 <label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
                   Symbols
@@ -215,12 +215,12 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
           </section>
           {/* Exchange & Credential */}
           <section className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2 text-foreground">
-              <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+            <h3 className="tui-section">
+              <ShieldCheck className="h-4 w-4 text-primary" />
               Execution Config
             </h3>
 
-            <div className="rounded-xl border bg-card p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="glass p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Exchange */}
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
@@ -291,11 +291,11 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
 
           {/* Intelligence Settings */}
           <section className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2 text-foreground">
-              <Activity className="h-4 w-4 text-muted-foreground" />
+            <h3 className="tui-section">
+              <Activity className="h-4 w-4 text-primary" />
               Intelligence Settings
             </h3>
-            <div className="rounded-xl border bg-card p-6 grid grid-cols-2 md:grid-cols-3 gap-8">
+            <div className="glass p-6 grid grid-cols-2 md:grid-cols-3 gap-8">
               {[
                 { label: "Model", value: agent?.llmModel ?? "N/A" },
                 {
@@ -330,7 +330,7 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
           variants={fadeUp}
           className="space-y-6"
         >
-          <Card className="bg-muted/30 border-dashed">
+          <Card className="bg-transparent shadow-none">
             <CardHeader>
               <CardTitle className="text-sm uppercase tracking-widest text-muted-foreground">
                 System Metadata
@@ -348,7 +348,7 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
                 {
                   label: "Last Run",
                   value: agent?.lastRun
-                    ? new Date(agent?.lastRun).toLocaleString()
+                    ? format(new Date(agent?.lastRun), "MMM d, yyyy HH:mm")
                     : "Never",
                   tabular: true,
                 },
@@ -397,7 +397,7 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
         >
           <div className="flex items-center justify-between ">
             <h3 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-muted-foreground" />
+              <TrendingUp className="h-5 w-5 text-primary" />
               Execution History
             </h3>
             <Badge variant="outline" className="font-mono">
@@ -405,7 +405,7 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
             </Badge>
           </div>
 
-          <div className="rounded-xl border bg-card overflow-hidden">
+          <div className="glass overflow-hidden">
             <div className="divide-y divide-border ">
               {runs.map((run, i) => (
                 <motion.div
@@ -420,13 +420,13 @@ export default function AgentDetailView({ agentId }: { agentId: string }) {
                     <div className="space-y-1 flex-1 min-w-0">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
                         <Clock className="h-3 w-3 shrink-0" />
-                        {new Date(run.createdAt).toLocaleString()}
+                        {format(new Date(run.createdAt), "MMM d, yyyy HH:mm")}
                       </div>
-                      <p className="text-sm text-foreground leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all">
+                      <div className="text-sm text-foreground leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all [&>*:first-child]:mt-0">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {run?.llmResponse || ""}
                         </ReactMarkdown>
-                      </p>
+                      </div>
                     </div>
                     <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1" />
                   </div>

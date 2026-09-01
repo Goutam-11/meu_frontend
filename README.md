@@ -12,16 +12,27 @@ MEU (Management & Execution Unit) is a comprehensive dashboard for trading autom
 
 ### 🤖 Agent Management
 - **Create Agents**: Set up new trading agents with custom configurations
-- **Agent Types**: Support for both crypto and stock trading
+- **Agent Types**: Support for both crypto and stock trading (Zerodha/NSE supported)
 - **Trading Strategies**: Choose from ALGO_TRADING, LLM_TRADING, or HYBRID approaches
 - **Risk Management**: Configure per-trade risk limits and daily loss thresholds
 - **Agent Monitoring**: Track agent status, last run times, and performance metrics
+- **Run Memory**: Agents receive their last 5 run summaries in every prompt and end each run with a structured summary — decisions stay consistent across cycles
 - **Real-time Control**: Start, pause, and modify running agents
 
 ### 🔑 Credential Management
-- **Multi-Provider Support**: OpenRouter, OpenAI, Anthropic
+- **Multi-Provider Support**: OpenRouter, OpenAI, Anthropic, NVIDIA NIM, OpenCode Zen — one abstraction, adding a provider is trivial
 - **Secure Storage**: API keys encrypted and securely stored
 - **Easy Integration**: Seamlessly connect AI models to agents
+
+### 💹 Zerodha (NSE) Trading
+- **Kite Connect Integration**: Real equity trading on NSE/BSE with product-code awareness (MIS/CNC/NRML)
+- **Market-Hours Aware**: Agents run only 09:15–15:30 IST Mon–Fri; NSE holidays are skipped automatically
+- **Daily Re-Auth Flow**: Kite tokens last one trading day — the dashboard shows a copyable redirect URL and a one-click login flow; agents pause and resume automatically around it
+
+### 🎨 Theme System
+- **Named Looks**: 7 complete themes — Mint Desk (default, FundedX-style dark + mint), Phosphor (pink terminal), Ledger (light paper), Ocean Depths, Ember, Verdant Night, Carbon
+- **Complete Swaps**: Each theme changes palette, corner radius, light/dark mode and typography together
+- **Instant Apply**: Persisted per-user to the server; no flash on reload
 
 ### 💱 Exchange Integration
 - **Multi-Exchange Support**: Connect to various crypto and stock exchanges via CCXT
@@ -37,9 +48,9 @@ MEU (Management & Execution Unit) is a comprehensive dashboard for trading autom
 
 ### 🔔 Notifications System
 - **Multi-Channel Alerts**: Error, warning, and info notifications
+- **Live Delivery**: MongoDB change stream → SSE — new notifications appear instantly, plus browser Web Push when the tab is closed
 - **Source Tracking**: Identify whether alerts come from agents, system, or exchanges
-- **Smart Routing**: Notifications specific to users, agents, or exchanges
-- **Status Management**: Mark notifications as read or acknowledged
+- **Status Management**: Mark as read (auto on view), mark all read, unread badges in sidebar and header bell
 
 ### 👤 Authentication & Authorization
 - **Secure Auth**: Email/password authentication with better-auth
@@ -313,6 +324,30 @@ Ensure all required environment variables are set:
 ### Build Failures
 - Clear node_modules and reinstall: `rm -rf node_modules && npm install`
 - Check TypeScript errors: `npx tsc --noEmit`
+
+## User Guide
+
+### Connecting Zerodha (NSE equity trading)
+
+1. Create a Kite Connect app at [developers.kite.trade](https://developers.kite.trade) — note the **API key** and **API secret**.
+2. In Meu, create an Exchange named exactly **`ZERODHA`** with the API key and secret.
+3. Create an agent bound to that exchange; its symbols must be NSE tradingsymbols (`INFY`, `RELIANCE`, …).
+4. **Daily login** — Kite access tokens are valid for one trading day:
+   - Open the exchange dashboard. If the session is expired you'll see a
+     "Zerodha session required" card with a **copyable redirect URL**.
+   - Paste that URL as your app's redirect URL in the Kite developer console (one-time setup).
+   - Click **Log in to Zerodha** — after login you're redirected back and the
+     token is exchanged automatically. Agents resume at the next cycle.
+   - No time to redirect? Paste the `request_token` from the login redirect
+     into the card's input and hit **Activate**.
+5. Agents only trade during market hours (09:15–15:30 IST, Mon–Fri, NSE
+   holidays skipped) — outside hours runs are skipped, never wasted.
+
+### Switching the look & feel
+
+Settings → Theme. Each named theme (Mint Desk, Phosphor, Ledger, Ocean
+Depths, Ember, Verdant Night, Carbon) changes palette, corner radius,
+light/dark and typography together. Your choice is saved to your profile.
 
 ## Contributing
 

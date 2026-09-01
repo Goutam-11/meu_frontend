@@ -13,6 +13,19 @@ export const useSuspenseExchanges = () => {
   const trpc = useTRPC();
   return useSuspenseQuery(trpc.exchange.getAll.queryOptions());
 };
+
+export const useSuspenseExchangesPaginated = ({
+  page,
+  search,
+}: {
+  page: number;
+  search: string;
+}) => {
+  const trpc = useTRPC();
+  return useSuspenseQuery(
+    trpc.exchange.getPaginated.queryOptions({ page, search })
+  );
+};
 export const useSuspenseExchange = (id: string) => {
   const trpc = useTRPC();
   return useSuspenseQuery(trpc.exchange.getOne.queryOptions({ id }));
@@ -97,13 +110,20 @@ export const useGetExchangeData = (exchangeId: string) => {
   );
 
   const data = query.data;
-  
+
+  // Zerodha daily token state — when expired the UI shows the re-auth flow
+  const kiteData = data as { kiteTokenExpired?: boolean; loginUrl?: string | null } | undefined;
+  const kiteTokenExpired: boolean = kiteData?.kiteTokenExpired === true;
+  const kiteLoginUrl: string | null = kiteData?.loginUrl ?? null;
+
   //Normalize partial errors into warnings
-  const warnings = [
-    data?.positionsError && `Positions: ${data.positionsError}`,
-    data?.tradesError && `Trades: ${data.tradesError}`,
-    data?.balanceError && `Balance: ${data.balanceError}`,
-  ].filter(Boolean) as string[];
+  const warnings = kiteTokenExpired
+    ? []
+    : [
+        data?.positionsError && `Positions: ${data.positionsError}`,
+        data?.tradesError && `Trades: ${data.tradesError}`,
+        data?.balanceError && `Balance: ${data.balanceError}`,
+      ].filter(Boolean) as string[];
 
   //Safe fallback data
   const safeData = {
@@ -114,6 +134,7 @@ export const useGetExchangeData = (exchangeId: string) => {
 
   //Detect total failure
   const isTotallyBroken =
+    !kiteTokenExpired &&
     !!data?.positionsError &&
     !!data?.tradesError &&
     !!data?.balanceError;
@@ -124,5 +145,28 @@ export const useGetExchangeData = (exchangeId: string) => {
     safeData,
     warnings,
     isTotallyBroken,
+    kiteTokenExpired,
+    kiteLoginUrl,
   };
+};
+
+/** Zerodha daily re-auth: submit a login request_token to activate the session. */
+export const useKiteAuth = (exchangeId: string) => {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    trpc.exchange.kiteAuth.mutationOptions({
+      retry: false,
+      onSuccess: () => {
+        toast.success("Zerodha session activated for today");
+        queryClient.invalidateQueries({
+          queryKey: trpc.exData.getById.queryKey({ id: exchangeId }),
+        });
+      },
+      onError: (error) => {
+        toast.error(`Kite auth failed: ${error.message}`);
+      },
+    }),
+  );
 };

@@ -52,7 +52,7 @@ export default function SignupForm() {
       name: values.name,
     }, {
       onSuccess: () => {
-        router.push("/cryptoAgents")
+        router.push("/dashboard")
       },
       onError: (error) => {
         toast.error(`Error signing up: ${error}`)
@@ -65,8 +65,13 @@ export default function SignupForm() {
   return (
     <Card className="w-full max-w-md mx-auto shadow-lg">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-        <CardDescription>Enter your details to get started</CardDescription>
+        <CardTitle className="text-xl font-bold tracking-tight">
+          <span className="text-primary">&gt;_</span> register
+          <span className="cursor-blink" aria-hidden />
+        </CardTitle>
+        <CardDescription className="!text-xs text-muted-foreground">
+          provision your operator account_
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -78,9 +83,9 @@ export default function SignupForm() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel className="tui-kicker">full name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Jane Doe" {...field} />
+                    <Input placeholder="jane operator" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -93,9 +98,9 @@ export default function SignupForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="tui-kicker">email</FormLabel>
                   <FormControl>
-                    <Input placeholder="jane@example.com" {...field} />
+                    <Input placeholder="operator@meu.dev" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -108,7 +113,7 @@ export default function SignupForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel className="tui-kicker">password</FormLabel>
                   <FormControl>
                     <Input type="password" {...field} />
                   </FormControl>
@@ -123,7 +128,7 @@ export default function SignupForm() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel className="tui-kicker">confirm password</FormLabel>
                   <FormControl>
                     <Input type="password" {...field} />
                   </FormControl>
@@ -132,15 +137,17 @@ export default function SignupForm() {
               )}
             />
 
-            <Button type="submit" className="w-full mt-6" disabled={isPending}>
-              {isPending ? 'Registering...' : 'Register'}
+            <Button
+              type="submit"
+              className="w-full ring-1 ring-inset ring-primary transition-colors hover:bg-transparent hover:text-primary"
+              disabled={isPending}
+            >
+              {isPending ? "[ provisioning… ]" : "$ create account"}
             </Button>
             <div className="flex justify-center">
               <p className="text-muted-foreground text-sm">
               Already have an account?
-              <Link href="/login" className="text-sm font-bold text-accent-foreground underline">
-                 Login here
-                </Link>
+              <Link href="/login" className="font-bold text-primary underline-offset-4 hover:underline">login here →</Link>
               </p>
             </div>
           </form>

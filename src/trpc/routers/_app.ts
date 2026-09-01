@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure } from '../init';
 import { agentsRouter } from '@/features/agents/server/router';
 import { credentialsRouter } from '@/features/credentials/server/router';
 import { notificationsRouter } from '@/features/notifications/server/router';
+import { settingsRouter } from '@/features/settings/server/router';
 import z from 'zod';
 import { getExchangeData } from '@/lib/config';
 export const appRouter = createTRPCRouter({
@@ -10,6 +11,7 @@ export const appRouter = createTRPCRouter({
   exchange: exchangeRouter,
   credentials: credentialsRouter,
   notifications: notificationsRouter,
+  settings: settingsRouter,
   exData: createTRPCRouter({
     getById: protectedProcedure
       .input(z.object({ id: z.string() }))

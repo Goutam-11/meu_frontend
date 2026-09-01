@@ -35,11 +35,11 @@ import {
   AgentStrategy,
   CredentialType,
 } from "@/generated/prisma/enums"; // Ensure these are exported
-import { MODELS } from "@/lib/constants";
+import { MODELS, PROVIDER_MODELS } from "@/lib/constants";
 import { useCreateAgent } from "@/features/agents/hooks/use-agent";
 import { CandlestickChartIcon, KeyIcon, Plus, Trash2 } from "lucide-react";
 import { useSuspenseExchanges } from "@/features/exchange/hooks/use-exchange";
-import { useCredentialByType } from "@/features/credentials/hooks/use-credentials";
+import { useAllCredentials } from "@/features/credentials/hooks/use-credentials";
 import { formatDistanceToNow } from "date-fns";
 
 const CYCLE_OPTIONS = [
@@ -85,7 +85,7 @@ export default function CreateAgentPage() {
   const { data: exchanges, isLoading: isLoadingExchanges } =
     useSuspenseExchanges();
   const { data: credentials, isLoading: isLoadingCredentials } =
-    useCredentialByType(CredentialType.OPENROUTER);
+    useAllCredentials();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -111,6 +111,11 @@ export default function CreateAgentPage() {
       },
     },
   });
+
+  const credentialId = form.watch("credentialId");
+  const selectedCredential = credentials?.find((c) => c.id === credentialId);
+  const modelOptions =
+    (selectedCredential && PROVIDER_MODELS[selectedCredential.type]) || MODELS;
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -268,7 +273,7 @@ export default function CreateAgentPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {MODELS.map((m) => (
+                        {modelOptions.map((m) => (
                           <SelectItem key={m} value={m}>
                             {m}
                           </SelectItem>
@@ -303,15 +308,25 @@ export default function CreateAgentPage() {
                 name="credentialId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>AI Model</FormLabel>
+                    <FormLabel>AI Provider Credential</FormLabel>
                     <Select
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        // Keep the model list in sync with the chosen provider
+                        const cred = credentials?.find((c) => c.id === value);
+                        const models = cred
+                          ? PROVIDER_MODELS[cred.type]
+                          : undefined;
+                        if (models && !models.includes(form.getValues("llmModel"))) {
+                          form.setValue("llmModel", models[0]);
+                        }
+                      }}
                       defaultValue={field.value}
                       disabled={isLoadingCredentials || !credentials?.length}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select an OpenRouter credential" />
+                          <SelectValue placeholder="Select an AI credential" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -330,8 +345,7 @@ export default function CreateAgentPage() {
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      The credential will be accessed for the OpenRouter
-                      service.
+                      The provider credential used to run this agent.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

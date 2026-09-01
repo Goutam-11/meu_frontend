@@ -7,11 +7,17 @@ import {
   OctagonXIcon,
   TriangleAlertIcon,
 } from "lucide-react"
-import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 
+// Theme is owned by the app's look presets (.dark class on <html>) —
+// next-themes is no longer mounted.
+function useAppTheme(): ToasterProps["theme"] {
+  if (typeof document === "undefined") return "dark"
+  return document.documentElement.classList.contains("dark") ? "dark" : "light"
+}
+
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  const theme = useAppTheme()
 
   return (
     <Sonner

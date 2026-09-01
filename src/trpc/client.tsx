@@ -2,7 +2,7 @@
 // ^-- to make sure we can mount the Provider from a server component
 import type { QueryClient } from '@tanstack/react-query';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { createTRPCClient, httpBatchLink } from '@trpc/client';
+import { createTRPCClient, httpBatchLink, httpSubscriptionLink, splitLink } from '@trpc/client';
 import { createTRPCContext } from '@trpc/tanstack-react-query';
 import { useState } from 'react';
 import { makeQueryClient } from './query-client';
@@ -30,6 +30,31 @@ function getUrl() {
   })();
   return `${base}/api/trpc`;
 }
+
+function makeLinks() {
+  return [
+    splitLink({
+      condition: (op) => op.type === 'subscription',
+      true: httpSubscriptionLink<AppRouter, typeof EventSource>({
+        transformer: superjson,
+        url: getUrl(),
+      }),
+      false: httpBatchLink<AppRouter>({
+        transformer: superjson,
+        url: getUrl(),
+      }),
+    }),
+  ];
+}
+
+// Vanilla tRPC client for non-hook modules (event handlers, stores, etc.)
+const globalForTrpc = globalThis as unknown as {
+  vanillaTrpc?: ReturnType<typeof createTRPCClient<AppRouter>>;
+};
+export const api = (globalForTrpc.vanillaTrpc ??= createTRPCClient<AppRouter>({
+  links: makeLinks(),
+}));
+
 export function TRPCReactProvider(
   props: Readonly<{
     children: React.ReactNode;
@@ -42,12 +67,7 @@ export function TRPCReactProvider(
   const queryClient = getQueryClient();
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({
-      links: [
-        httpBatchLink({
-          transformer: superjson,
-          url: getUrl(),
-        }),
-      ],
+      links: makeLinks(),
     }),
   );
   return (

@@ -93,6 +93,11 @@ export type Positions = Prisma.PositionsModel
  */
 export type Notification = Prisma.NotificationModel
 /**
+ * Model PushSubscription
+ * 
+ */
+export type PushSubscription = Prisma.PushSubscriptionModel
+/**
  * Model Credentials
  * 
  */

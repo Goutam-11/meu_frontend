@@ -57,6 +57,8 @@ export default function CreateCredentialPage() {
       case CredentialType.OPENAI: return "sk-...";
       case CredentialType.ANTHROPIC: return "sk-ant-...";
       case CredentialType.OPENROUTER: return "sk-or-...";
+      case CredentialType.NVIDIA_NIM: return "nvapi-...";
+      case CredentialType.OPENCODE: return "Your OpenCode Zen API key";
       default: return "Enter your API key";
     }
   };
